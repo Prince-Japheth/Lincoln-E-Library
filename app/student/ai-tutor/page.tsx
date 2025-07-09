@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useState, useRef, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -23,11 +23,14 @@ import {
   Copy,
   BookOpen,
   Search,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { EmptyChatsIllustration } from "@/components/empty-state-illustrations"
 import ReactMarkdown from 'react-markdown'
 import AnimatedLogo from "@/components/animated-logo"
+import { useToast } from "@/components/ui/use-toast"
 
 interface Message {
   id: string
@@ -67,10 +70,13 @@ export default function AITutorPage() {
   const [bookContext, setBookContext] = useState<{title?: string, author?: string, genre?: string}>({})
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
+  const pathname = usePathname()
   const supabase = createClient()
   const [shouldAutoSend, setShouldAutoSend] = useState(false)
   const formRef = useRef<HTMLFormElement>(null)
   const endOfMessagesRef = useRef<HTMLDivElement>(null);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const { toast } = useToast();
 
   useEffect(() => {
     const checkUser = async () => {
@@ -161,19 +167,28 @@ export default function AITutorPage() {
     }
   }, [currentChatId])
 
+  // On mount, check for chatId in the URL
   useEffect(() => {
+    const pathParts = pathname.split("/")
+    const chatIdFromUrl = pathParts[pathParts.length - 1].length > 10 ? pathParts[pathParts.length - 1] : null
     if (chats.length > 0) {
-      const savedId = typeof window !== 'undefined' ? localStorage.getItem('ai-tutor-current-chat-id') : null
-      const found = savedId && chats.find(c => c.id === savedId)
-      if (found) {
-        setCurrentChatId(savedId)
-        setMessages(found.messages)
+      if (chatIdFromUrl) {
+        const found = chats.find(c => c.id === chatIdFromUrl)
+        if (found) {
+          setCurrentChatId(chatIdFromUrl)
+          setMessages(found.messages)
+        } else {
+          setCurrentChatId(chats[0].id)
+          setMessages(chats[0].messages)
+          router.replace(`/student/ai-tutor/${chats[0].id}`, { shallow: true })
+        }
       } else {
         setCurrentChatId(chats[0].id)
         setMessages(chats[0].messages)
+        router.replace(`/student/ai-tutor/${chats[0].id}`, { shallow: true })
       }
     }
-  }, [chats])
+  }, [chats, pathname])
 
   const loadChatSessions = async (userId: string) => {
     try {
@@ -235,6 +250,7 @@ export default function AITutorPage() {
     return words.length > 30 ? words.substring(0, 30) + "..." : words
   }
 
+  // When a new chat is created, update the URL
   const createNewChat = () => {
     const welcomeMessage: Message = {
       id: "welcome-" + Date.now(),
@@ -242,9 +258,9 @@ export default function AITutorPage() {
       role: "assistant",
       timestamp: new Date(),
     }
-
     setCurrentChatId(null)
     setMessages([welcomeMessage])
+    // URL will update after chat is saved and loaded
   }
 
   const saveChatSession = async (
@@ -472,11 +488,13 @@ export default function AITutorPage() {
     }
   }
 
+  // When a chat is loaded, update the URL
   const loadChat = (chatId: string) => {
     const chat = chats.find((c) => c.id === chatId)
     if (chat) {
       setCurrentChatId(chatId)
       setMessages(chat.messages)
+      router.replace(`/student/ai-tutor/${chatId}`, { shallow: true })
     }
     if (typeof window !== 'undefined' && window.innerWidth < 768) {
       setSidebarOpen(false);
@@ -530,13 +548,11 @@ export default function AITutorPage() {
 
       <div className="flex pt-16 h-screen">
         {/* Sidebar for desktop */}
-        <div className="hidden md:block w-80 transition-all duration-300 overflow-hidden chat-sidebar">
-          {typeof window !== 'undefined' && window.innerWidth < 768 && (
-            <div className="flex justify-center px-5 pt-5">
-              <img src="/logo.png" alt="Lincoln Logo" className="w-full object-contain" />
-            </div>
-          )}
-          <div className="p-6 h-full flex flex-col">
+        <div className={`hidden md:block transition-all duration-300 overflow-hidden chat-sidebar relative ${sidebarCollapsed ? 'w-14' : 'w-80'}`}>
+          {/* Sidebar content, hidden when collapsed */}
+          <div className={`p-6 h-full flex flex-col transition-opacity duration-200 ${sidebarCollapsed ? 'opacity-0 pointer-events-none select-none' : 'opacity-100'}`}
+            style={{ width: sidebarCollapsed ? 0 : 'auto' }}
+          >
             <Button
               onClick={createNewChat}
               className="w-full mb-6 morph-button bg-gradient-to-r from-[#fe0002] to-[#ff4444] hover:from-[#fe0002]/90 hover:to-[#ff4444]/90 hover:scale-105 transition-all duration-300"
@@ -544,10 +560,8 @@ export default function AITutorPage() {
               <Plus className="h-4 w-4 mr-2" />
               New Chat
             </Button>
-
             <div className="flex-1 overflow-hidden">
               <h3 className="text-sm font-semibold text-muted-foreground mb-4 uppercase tracking-wide">Past Chats</h3>
-              
               {/* Search input */}
               <div className="relative mb-4">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -558,7 +572,6 @@ export default function AITutorPage() {
                   className="h-10 pl-10 pr-3 rounded-2xl glassmorphism-card border border-border focus:border-[#fe0002] shadow-sm text-sm bg-background"
                 />
               </div>
-
               {filteredChats.length === 0 ? (
                 <div className="text-center py-8">
                   <EmptyChatsIllustration />
@@ -618,7 +631,10 @@ export default function AITutorPage() {
               )}
               <div className="p-6 h-full flex flex-col">
                 <Button
-                  onClick={createNewChat}
+                  onClick={() => {
+                    createNewChat();
+                    if (typeof window !== 'undefined' && window.innerWidth < 768) setSidebarOpen(false);
+                  }}
                   className="w-full mb-6 morph-button bg-gradient-to-r from-[#fe0002] to-[#ff4444] hover:from-[#fe0002]/90 hover:to-[#ff4444]/90 hover:scale-105 transition-all duration-300"
                 >
                   <Plus className="h-4 w-4 mr-2" />
@@ -696,6 +712,15 @@ export default function AITutorPage() {
           {/* Chat Header */}
           <div className="glassmorphism-nav p-4 flex items-center justify-between">
             <div className="flex items-center space-x-3">
+              {/* Sidebar collapse/expand button (desktop only) */}
+              <button
+                className={`hidden md:inline-flex items-center justify-center mr-2 h-9 w-9 rounded-full glassmorphism-card shadow transition hover:scale-110 border border-border focus:outline-none focus:ring-2 focus:ring-[#fe0002]`} 
+                onClick={() => setSidebarCollapsed((c) => !c)}
+                aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+                style={{ zIndex: 20 }}
+              >
+                {sidebarCollapsed ? <ChevronRight className="h-5 w-5 text-[#fe0002]" /> : <ChevronLeft className="h-5 w-5 text-[#fe0002]" />}
+              </button>
               {/* Mobile sidebar toggle button */}
               <Button
                 variant="ghost"
@@ -772,7 +797,12 @@ export default function AITutorPage() {
                           variant="ghost"
                           size="icon"
                           className="p-1 h-7 w-7"
-                          onClick={() => navigator.clipboard.writeText(message.content)}
+                          onClick={() => {
+                            navigator.clipboard.writeText(message.content)
+                            if (typeof window !== 'undefined' && window.innerWidth >= 768) {
+                              toast({ title: 'Copied to clipboard!' })
+                            }
+                          }}
                           title="Copy reply"
                         >
                           <Copy className="h-4 w-4" />
@@ -834,13 +864,21 @@ export default function AITutorPage() {
           <div className="glassmorphism-nav p-6">
             <div className="max-w-4xl mx-auto">
               <form ref={formRef} onSubmit={handleSubmit} className="flex gap-4">
-                <Input
+                <textarea
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   placeholder="Ask me anything about your studies..."
                   disabled={false}
                   aria-invalid={false}
-                  className="flex-1 h-12 glassmorphism-card border-0 text-base bg-white"
+                  className="flex-1 h-12 min-h-[3rem] max-h-40 glassmorphism-card border-0 text-base bg-white resize-none py-3 px-4 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#fe0002]"
+                  rows={1}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !(e.shiftKey || e.metaKey)) {
+                      e.preventDefault();
+                      formRef.current?.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+                    }
+                    // Otherwise, allow Shift+Enter or Cmd+Enter for new lines
+                  }}
                 />
                 <Button
                   type="submit"

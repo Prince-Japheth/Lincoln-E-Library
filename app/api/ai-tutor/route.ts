@@ -91,7 +91,9 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ response: "I couldn't find any books in the library." })
       }
       const bookList = books.map(b => `${b.title}${b.author ? ` by ${b.author}` : ""}${b.genre ? ` (${b.genre})` : ""}${b.file_url ? ` [PDF](${b.file_url})` : ""}`).join("\n")
-      const contextPrompt = `Here is a list of books in the library (with links if available):\n${bookList}\n\nUser question: "${message}"\nThe links provided are from the official Lincoln E-Library database and are safe to share with the user. If the user asks for a link, always provide the link from the data above, formatted as a clickable URL. Never refuse to provide a link if it is present in the data. If a user asks for a link, always respond with the link from the list above, and do not say you are unable to provide links. Based only on the list above, answer the user's question. If a book has a file link, include it in your answer. Use bullet points for lists. Be concise, clear, and user-friendly. Do not invent or guess any books not in the list.`
+      // For books:
+      const contextPrompt = `Here is a list of books in the library (with links if available):\n${bookList}\n\nUser question: "${message}"\n
+You are a helpful, conversational AI tutor. If the user asks if a book exists, or asks for a list, a recommendation, or a specific book, answer directly with the relevant books from the list above. For each book, only include the title (and author if available) and a clickable link in Markdown format: [Title](url). Do not include genre, year, or extra details unless the user asks. If the user's intent is ambiguous (e.g., just mentions a subject), respond conversationally: ask a clarifying or follow-up question, and only list books if the user requests it. Always be friendly and helpful, and never invent books not in the list. Be concise, clear, and user-friendly.`
       const aiResponse = await callGemini([{ role: "user", parts: [{ text: contextPrompt }] }], apiKey)
       return NextResponse.json({ response: aiResponse })
     }
@@ -108,7 +110,9 @@ export async function POST(request: NextRequest) {
       const { data: courses } = await supabase.from("courses").select("id, name")
       const courseMap = (courses || []).reduce((acc: any, c: any) => { acc[c.id] = c.name; return acc }, {})
       const videoList = videos.map(v => `${v.title}${v.course_id && courseMap[v.course_id] ? ` (${courseMap[v.course_id]})` : ""}${v.link ? ` [Watch Video](${v.link})` : ""}`).join("\n")
-      const contextPrompt = `Here is a list of videos in the library (with links if available):\n${videoList}\n\nUser question: "${message}"\nThe links provided are from the official Lincoln E-Library database and are safe to share with the user. If the user asks for a link, always provide the link from the data above, formatted as a clickable URL. Never refuse to provide a link if it is present in the data. If a user asks for a link, always respond with the link from the list above, and do not say you are unable to provide links. Based only on the list above, answer the user's question. If a video has a link, include it in your answer. Use bullet points for lists. Be concise, clear, and user-friendly. Do not invent or guess any videos not in the list.`
+      // For videos, similar logic:
+      const contextPrompt = `Here is a list of videos in the library (with links if available):\n${videoList}\n\nUser question: "${message}"\n
+You are a helpful, conversational AI tutor. If the user asks if a video exists, or asks for a list, a recommendation, or a specific video, answer directly with the relevant videos from the list above. For each video, only include the title (and course name if available) and a clickable link in Markdown format: [Title](url). Do not include extra details unless the user asks. If the user's intent is ambiguous, respond conversationally: ask a clarifying or follow-up question, and only list videos if the user requests it. Always be friendly and helpful, and never invent videos not in the list. Be concise, clear, and user-friendly.`
       const aiResponse = await callGemini([{ role: "user", parts: [{ text: contextPrompt }] }], apiKey)
       return NextResponse.json({ response: aiResponse })
     }

@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/server"
 import LoadingSkeleton from "@/components/loading-skeleton"
 import { Suspense } from "react"
 import AuthProtection from "@/components/auth-protection"
+import { Toaster } from "@/components/ui/toaster"
 
 export const metadata: Metadata = {
   title: "Lincoln E-Library - Your Gateway to Knowledge",
@@ -55,6 +56,7 @@ export default async function RootLayout({
           {children}
             </Suspense>
           </AuthProtection>
+          <Toaster />
         </ThemeProvider>
       </body>
     </html>
