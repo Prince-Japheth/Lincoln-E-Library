@@ -93,7 +93,7 @@ export async function POST(request: NextRequest) {
       const bookList = books.map(b => `${b.title}${b.author ? ` by ${b.author}` : ""}${b.genre ? ` (${b.genre})` : ""}${b.file_url ? ` [PDF](${b.file_url})` : ""}`).join("\n")
       // For books:
       const contextPrompt = `Here is a list of books in the library (with links if available):\n${bookList}\n\nUser question: "${message}"\n
-You are a helpful, conversational AI tutor. If the user asks if a book exists, or asks for a list, a recommendation, or a specific book, answer directly with the relevant books from the list above. For each book, only include the title (and author if available) and a clickable link in Markdown format: [Title](url). Do not include genre, year, or extra details unless the user asks. If the user's intent is ambiguous (e.g., just mentions a subject), respond conversationally: ask a clarifying or follow-up question, and only list books if the user requests it. Always be friendly and helpful, and never invent books not in the list. Be concise, clear, and user-friendly.`
+You are a helpful, conversational AI tutor. If the user asks if a book exists, answer conversationally (e.g., 'Yes, we have a book on anatomy!'). Only provide the clickable link or details if the user asks for them, or if it would be helpful in context. If the user asks for a list, a recommendation, or a specific book, provide the relevant clickable links. Be concise, friendly, and natural. Never invent books not in the list.`
       const aiResponse = await callGemini([{ role: "user", parts: [{ text: contextPrompt }] }], apiKey)
       return NextResponse.json({ response: aiResponse })
     }
@@ -112,7 +112,7 @@ You are a helpful, conversational AI tutor. If the user asks if a book exists, o
       const videoList = videos.map(v => `${v.title}${v.course_id && courseMap[v.course_id] ? ` (${courseMap[v.course_id]})` : ""}${v.link ? ` [Watch Video](${v.link})` : ""}`).join("\n")
       // For videos, similar logic:
       const contextPrompt = `Here is a list of videos in the library (with links if available):\n${videoList}\n\nUser question: "${message}"\n
-You are a helpful, conversational AI tutor. If the user asks if a video exists, or asks for a list, a recommendation, or a specific video, answer directly with the relevant videos from the list above. For each video, only include the title (and course name if available) and a clickable link in Markdown format: [Title](url). Do not include extra details unless the user asks. If the user's intent is ambiguous, respond conversationally: ask a clarifying or follow-up question, and only list videos if the user requests it. Always be friendly and helpful, and never invent videos not in the list. Be concise, clear, and user-friendly.`
+You are a helpful, conversational AI tutor. If the user asks if a video exists, answer conversationally (e.g., 'Yes, we have a video on biology!'). Only provide the clickable link or details if the user asks for them, or if it would be helpful in context. If the user asks for a list, a recommendation, or a specific video, provide the relevant clickable links. Be concise, friendly, and natural. Never invent videos not in the list.`
       const aiResponse = await callGemini([{ role: "user", parts: [{ text: contextPrompt }] }], apiKey)
       return NextResponse.json({ response: aiResponse })
     }

@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useState, useRef, useEffect } from "react"
-import { useRouter, usePathname } from "next/navigation"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -70,7 +70,6 @@ export default function AITutorPage() {
   const [bookContext, setBookContext] = useState<{title?: string, author?: string, genre?: string}>({})
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
-  const pathname = usePathname()
   const supabase = createClient()
   const [shouldAutoSend, setShouldAutoSend] = useState(false)
   const formRef = useRef<HTMLFormElement>(null)
@@ -167,28 +166,19 @@ export default function AITutorPage() {
     }
   }, [currentChatId])
 
-  // On mount, check for chatId in the URL
   useEffect(() => {
-    const pathParts = pathname.split("/")
-    const chatIdFromUrl = pathParts[pathParts.length - 1].length > 10 ? pathParts[pathParts.length - 1] : null
     if (chats.length > 0) {
-      if (chatIdFromUrl) {
-        const found = chats.find(c => c.id === chatIdFromUrl)
-        if (found) {
-          setCurrentChatId(chatIdFromUrl)
-          setMessages(found.messages)
-        } else {
-          setCurrentChatId(chats[0].id)
-          setMessages(chats[0].messages)
-          router.replace(`/student/ai-tutor/${chats[0].id}`, { shallow: true })
-        }
+      const savedId = typeof window !== 'undefined' ? localStorage.getItem('ai-tutor-current-chat-id') : null
+      const found = savedId && chats.find(c => c.id === savedId)
+      if (found) {
+        setCurrentChatId(savedId)
+        setMessages(found.messages)
       } else {
         setCurrentChatId(chats[0].id)
         setMessages(chats[0].messages)
-        router.replace(`/student/ai-tutor/${chats[0].id}`, { shallow: true })
       }
     }
-  }, [chats, pathname])
+  }, [chats])
 
   const loadChatSessions = async (userId: string) => {
     try {
@@ -250,7 +240,6 @@ export default function AITutorPage() {
     return words.length > 30 ? words.substring(0, 30) + "..." : words
   }
 
-  // When a new chat is created, update the URL
   const createNewChat = () => {
     const welcomeMessage: Message = {
       id: "welcome-" + Date.now(),
@@ -258,9 +247,9 @@ export default function AITutorPage() {
       role: "assistant",
       timestamp: new Date(),
     }
+
     setCurrentChatId(null)
     setMessages([welcomeMessage])
-    // URL will update after chat is saved and loaded
   }
 
   const saveChatSession = async (
@@ -488,13 +477,11 @@ export default function AITutorPage() {
     }
   }
 
-  // When a chat is loaded, update the URL
   const loadChat = (chatId: string) => {
     const chat = chats.find((c) => c.id === chatId)
     if (chat) {
       setCurrentChatId(chatId)
       setMessages(chat.messages)
-      router.replace(`/student/ai-tutor/${chatId}`, { shallow: true })
     }
     if (typeof window !== 'undefined' && window.innerWidth < 768) {
       setSidebarOpen(false);
@@ -635,76 +622,76 @@ export default function AITutorPage() {
                     createNewChat();
                     if (typeof window !== 'undefined' && window.innerWidth < 768) setSidebarOpen(false);
                   }}
-                  className="w-full mb-6 morph-button bg-gradient-to-r from-[#fe0002] to-[#ff4444] hover:from-[#fe0002]/90 hover:to-[#ff4444]/90 hover:scale-105 transition-all duration-300"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  New Chat
-                </Button>
+              className="w-full mb-6 morph-button bg-gradient-to-r from-[#fe0002] to-[#ff4444] hover:from-[#fe0002]/90 hover:to-[#ff4444]/90 hover:scale-105 transition-all duration-300"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              New Chat
+            </Button>
 
-                <div className="flex-1 overflow-hidden">
-                  <h3 className="text-sm font-semibold text-muted-foreground mb-4 uppercase tracking-wide">Past Chats</h3>
-                  
-                  {/* Search input */}
+            <div className="flex-1 overflow-hidden">
+              <h3 className="text-sm font-semibold text-muted-foreground mb-4 uppercase tracking-wide">Past Chats</h3>
+              
+              {/* Search input */}
                   <div className="relative mb-4">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
-                    <Input
-                      placeholder="Search chats..."
-                      value={chatSearch}
-                      onChange={(e) => setChatSearch(e.target.value)}
+                <Input
+                  placeholder="Search chats..."
+                  value={chatSearch}
+                  onChange={(e) => setChatSearch(e.target.value)}
                       className="h-10 pl-10 pr-3 rounded-2xl glassmorphism-card border border-border focus:border-[#fe0002] shadow-sm text-sm bg-background"
-                    />
-                  </div>
+                />
+              </div>
 
-                  {filteredChats.length === 0 ? (
-                    <div className="text-center py-8">
-                      <EmptyChatsIllustration />
-                      <p className="text-muted-foreground text-sm">
-                        {chatSearch ? "No chats match your search" : "No chat history yet"}
-                      </p>
-                      <p className="text-muted-foreground text-xs mt-1">
-                        {chatSearch ? "Try a different search term" : "Start a conversation to see your chats here"}
-                      </p>
-                    </div>
-                  ) : (
-                    <ScrollArea className="flex-1">
-                      <div className="space-y-2">
-                        {filteredChats.map((chat) => (
-                          <div
-                            key={chat.id}
-                            className={`group relative p-3 rounded-xl cursor-pointer transition-all duration-200 ${currentChatId === chat.id ? "bg-[#fe0002]/10 border border-[#fe0002]/20" : "hover:bg-muted/50"
-                              }`}
-                            onClick={() => loadChat(chat.id)}
-                          >
-                            <div className="flex items-start justify-between">
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium truncate">{chat.title}</p>
-                                <p className="text-xs text-muted-foreground">{chat.lastUpdated.toLocaleDateString()}</p>
-                              </div>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="ml-2 p-1 h-auto"
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  setShowDeleteConfirm(true)
-                                  setChatToDelete(chat.id)
-                                }}
-                                title="Delete chat"
-                              >
-                                <Trash2 className="h-3 w-3" />
-                              </Button>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </ScrollArea>
-                  )}
+              {filteredChats.length === 0 ? (
+                <div className="text-center py-8">
+                  <EmptyChatsIllustration />
+                  <p className="text-muted-foreground text-sm">
+                    {chatSearch ? "No chats match your search" : "No chat history yet"}
+                  </p>
+                  <p className="text-muted-foreground text-xs mt-1">
+                    {chatSearch ? "Try a different search term" : "Start a conversation to see your chats here"}
+                  </p>
                 </div>
+              ) : (
+                <ScrollArea className="flex-1">
+                  <div className="space-y-2">
+                    {filteredChats.map((chat) => (
+                      <div
+                        key={chat.id}
+                        className={`group relative p-3 rounded-xl cursor-pointer transition-all duration-200 ${currentChatId === chat.id ? "bg-[#fe0002]/10 border border-[#fe0002]/20" : "hover:bg-muted/50"
+                          }`}
+                        onClick={() => loadChat(chat.id)}
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium truncate">{chat.title}</p>
+                            <p className="text-xs text-muted-foreground">{chat.lastUpdated.toLocaleDateString()}</p>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="ml-2 p-1 h-auto"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              setShowDeleteConfirm(true)
+                              setChatToDelete(chat.id)
+                            }}
+                            title="Delete chat"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </ScrollArea>
+              )}
+            </div>
                 <Button variant="ghost" size="sm" className="mt-4" onClick={() => setSidebarOpen(false)}>
                   Close
                 </Button>
-              </div>
-            </div>
+          </div>
+        </div>
           </div>
         )}
         {/* Main Chat Area */}
