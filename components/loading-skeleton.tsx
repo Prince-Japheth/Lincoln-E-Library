@@ -134,6 +134,59 @@ export function PDFViewerSkeleton() {
   )
 }
 
+export function StudentDashboardSkeleton() {
+  return (
+    <div className="min-h-screen bg-background animate-pulse">
+      <div className="container mx-auto px-4 py-8">
+        {/* Stats Cards Skeleton */}
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="glassmorphism-card border-0 rounded-2xl p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="skeleton h-4 w-24 rounded-2xl" />
+                <div className="skeleton h-5 w-5 rounded-2xl" />
+              </div>
+              <div className="skeleton h-8 w-16 rounded-2xl mb-2" />
+              <div className="skeleton h-3 w-32 rounded-2xl" />
+            </div>
+          ))}
+        </div>
+        {/* Search/Filter Card Skeleton */}
+        <div className="glassmorphism-card border-0 mb-8 bg-card rounded-2xl p-6 max-w-3xl mx-auto">
+          <div className="skeleton h-12 w-full rounded-2xl mb-4" />
+          <div className="flex gap-2 mb-4">
+            <div className="skeleton h-8 w-24 rounded-2xl" />
+            <div className="skeleton h-8 w-24 rounded-2xl" />
+            <div className="skeleton h-8 w-24 rounded-2xl" />
+          </div>
+          <div className="skeleton h-10 w-32 rounded-2xl" />
+        </div>
+        {/* Book Grid Skeleton */}
+        <div className="bento-grid">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="glassmorphism-card border-0 overflow-hidden hover-lift group flex flex-col h-full min-h-[420px] rounded-2xl">
+              <div className="aspect-[2/3] relative overflow-hidden rounded-t-2xl skeleton" />
+              <div className="p-6 flex flex-col flex-1">
+                <div className="skeleton h-6 w-3/4 rounded-2xl mb-2" />
+                <div className="skeleton h-4 w-1/2 rounded-2xl mb-3" />
+                <div className="flex flex-wrap gap-2 mb-4">
+                  <div className="skeleton h-6 w-16 rounded-2xl" />
+                  <div className="skeleton h-6 w-20 rounded-2xl" />
+                </div>
+                <div className="skeleton h-16 w-full rounded-2xl mb-4 flex-1" />
+                <div className="mt-auto flex gap-3 pt-4">
+                  <div className="skeleton h-10 flex-1 rounded-2xl" />
+                  <div className="skeleton h-10 flex-1 rounded-2xl" />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function LoadingSkeleton() {
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90">
