@@ -12,8 +12,7 @@ import BookEditDialog from "@/components/book-edit-dialog"
 import CourseCreateDialog from "@/components/course-create-dialog"
 import CourseEditDialog from "@/components/course-edit-dialog"
 import VideoUploadDialog from "@/components/video-upload-dialog"
-import { createClient } from "@/lib/supabase/client"
-import { logAuditEvent, checkRateLimit } from "@/lib/utils"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/components/ui/use-toast"
@@ -27,6 +26,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { createClient } from "@/lib/supabase/client"
+import { logAuditEvent, checkRateLimit } from "@/lib/utils"
 
 interface AdminDashboardProps {
   books: any[]
@@ -401,6 +402,9 @@ export default function AdminDashboard({ books: initialBooks, bookRequests, cour
 
   const [showVideoDialog, setShowVideoDialog] = useState(false)
   const [videos, setVideos] = useState<any[]>([])
+  const [editingVideo, setEditingVideo] = useState<any>(null)
+  const [showEditVideoDialog, setShowEditVideoDialog] = useState(false)
+  const [deletingVideo, setDeletingVideo] = useState<any>(null)
 
   // Fetch videos on mount
   useEffect(() => {
@@ -414,6 +418,47 @@ export default function AdminDashboard({ books: initialBooks, bookRequests, cour
   const handleVideoAdded = (video: any) => {
     setVideos((prev) => [video, ...prev])
   }
+
+  const handleEditVideo = (video: any) => {
+    setEditingVideo(video)
+    setShowEditVideoDialog(true)
+  }
+
+  const handleDeleteVideo = async (videoId: string) => {
+    if (!window.confirm("Are you sure you want to delete this video? This action cannot be undone.")) return
+    const { error } = await supabase.from("videos").delete().eq("id", videoId)
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" })
+    } else {
+      setVideos((prev) => prev.filter((v) => v.id !== videoId))
+      toast({ title: "Video deleted", variant: "default" })
+    }
+  }
+
+  const handleVideoUpdated = (updatedVideo: any) => {
+    setVideos((prev) => prev.map((v) => v.id === updatedVideo.id ? updatedVideo : v))
+    setShowEditVideoDialog(false)
+    setEditingVideo(null)
+    toast({ title: "Video updated", variant: "default" })
+  }
+
+  // Video filtering state
+  const [videoSearch, setVideoSearch] = useState("")
+  const [videoFilterCourse, setVideoFilterCourse] = useState("all")
+  const [videoPage, setVideoPage] = useState(1)
+  const videosPerPage = 10
+
+  const filteredVideos = videos
+    .filter(
+      (video) =>
+        (video.title.toLowerCase().includes(videoSearch.toLowerCase()) ||
+          video.link.toLowerCase().includes(videoSearch.toLowerCase())) &&
+        (videoFilterCourse === "all" || video.course_id === videoFilterCourse)
+    )
+    .sort((a, b) => Number(new Date(b.created_at)) - Number(new Date(a.created_at)))
+
+  const totalVideoPages = Math.ceil(filteredVideos.length / videosPerPage)
+  const paginatedVideos = filteredVideos.slice((videoPage - 1) * videosPerPage, videoPage * videosPerPage)
 
   return (
     <div className="space-y-6">
@@ -786,26 +831,68 @@ export default function AdminDashboard({ books: initialBooks, bookRequests, cour
               </Button>
             </CardHeader>
             <CardContent>
-              {videos.length === 0 ? (
+              <div className="flex flex-col md:flex-row gap-4 mb-6">
+                <Input
+                  type="text"
+                  placeholder="Search videos..."
+                  value={videoSearch}
+                  onChange={e => { setVideoSearch(e.target.value); setVideoPage(1); }}
+                  className="w-full md:w-64"
+                />
+                <Select value={videoFilterCourse} onValueChange={value => { setVideoFilterCourse(value); setVideoPage(1); }}>
+                  <SelectTrigger className="w-full md:w-40">
+                    <SelectValue placeholder="Filter by course" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Courses</SelectItem>
+                    {uniqueCourses.map((course) => (
+                      <SelectItem key={course.id} value={course.id}>{course.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              {filteredVideos.length === 0 ? (
                 <div className="text-muted-foreground">No videos uploaded yet.</div>
               ) : (
                 <div className="space-y-4">
-                  {videos.map((video) => (
+                  {paginatedVideos.map((video) => (
                     <div key={video.id} className="flex flex-col md:flex-row md:items-center md:justify-between border-b pb-3">
                       <div>
                         <div className="font-semibold text-lg">{video.title}</div>
                         <a href={video.link} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline break-all">{video.link}</a>
+                        {video.course_id && (
+                          <div className="text-xs text-muted-foreground mt-1">
+                            {uniqueCourses.find((c) => c.id === video.course_id)?.name || "Unknown Course"}
+                          </div>
+                        )}
                       </div>
-                      <div className="mt-2 md:mt-0">
-                        <span className="text-xs text-muted-foreground">{new Date(video.created_at).toLocaleString()}</span>
+                      <div className="mt-2 md:mt-0 flex gap-2">
+                        <Button size="sm" variant="outline" onClick={() => handleEditVideo(video)}>
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button size="sm" variant="destructive" onClick={() => handleDeleteVideo(video.id)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                        <span className="text-xs text-muted-foreground ml-2">{new Date(video.created_at).toLocaleString()}</span>
                       </div>
                     </div>
                   ))}
                 </div>
               )}
+              {/* Pagination Controls for videos if needed */}
             </CardContent>
           </Card>
-          <VideoUploadDialog open={showVideoDialog} onOpenChange={setShowVideoDialog} onVideoAdded={handleVideoAdded} />
+          <VideoUploadDialog open={showVideoDialog} onOpenChange={setShowVideoDialog} onVideoAdded={handleVideoAdded} courses={uniqueCourses} />
+          {editingVideo && (
+            <EditVideoDialog
+              open={showEditVideoDialog}
+              onOpenChange={setShowEditVideoDialog}
+              video={editingVideo}
+              courses={uniqueCourses}
+              onVideoUpdated={handleVideoUpdated}
+              toast={toast}
+            />
+          )}
         </TabsContent>
       </Tabs>
 
@@ -854,5 +941,71 @@ export default function AdminDashboard({ books: initialBooks, bookRequests, cour
         </AlertDialogContent>
       </AlertDialog>
     </div>
+  )
+}
+
+// Edit Video Dialog Component
+function EditVideoDialog({ open, onOpenChange, video, courses, onVideoUpdated, toast }: { open: boolean, onOpenChange: (v: boolean) => void, video: any, courses: any[], onVideoUpdated: (video: any) => void, toast: any }) {
+  const [title, setTitle] = useState(video.title)
+  const [link, setLink] = useState(video.link)
+  const [courseId, setCourseId] = useState(video.course_id || "none")
+  const [loading, setLoading] = useState(false)
+  const supabase = createClient()
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    const { data, error } = await supabase.from("videos").update({ title, link, course_id: courseId === "none" ? null : courseId }).eq("id", video.id).select().single()
+    setLoading(false)
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" })
+    } else {
+      onVideoUpdated(data)
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Edit Video</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <Input
+            placeholder="Video Title"
+            value={title}
+            onChange={e => setTitle(e.target.value)}
+            disabled={loading}
+            required
+          />
+          <Input
+            placeholder="Video Link (YouTube, Vimeo, etc.)"
+            value={link}
+            onChange={e => setLink(e.target.value)}
+            disabled={loading}
+            required
+          />
+          <div>
+            <label className="block mb-1 text-sm font-medium">Course (optional)</label>
+            <select
+              className="w-full px-3 py-2 rounded border border-border bg-card text-foreground"
+              value={courseId}
+              onChange={e => setCourseId(e.target.value)}
+              disabled={loading}
+            >
+              <option value="none">No Course</option>
+              {courses.map((course: any) => (
+                <option key={course.id} value={course.id}>{course.name}</option>
+              ))}
+            </select>
+          </div>
+          <DialogFooter>
+            <Button type="submit" disabled={loading} className="w-full bg-[#fe0002] text-white">
+              {loading ? "Saving..." : "Save Changes"}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   )
 }

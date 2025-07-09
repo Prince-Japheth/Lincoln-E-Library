@@ -129,9 +129,15 @@ export default function LoginPage() {
   if (checking) return null
   if (redirecting) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center">
-        <Loader2 className="h-10 w-10 animate-spin mb-4 text-primary" />
-        <div className="text-lg font-semibold">Login successful! Redirecting to your dashboard...</div>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-green-50 dark:bg-green-900/40 animate-fade-in">
+        <div className="flex flex-col items-center">
+          <div className="rounded-full bg-green-500/20 p-6 mb-4 animate-bounce">
+            <UserCheck className="h-12 w-12 text-green-600" />
+          </div>
+          <div className="text-2xl font-bold text-green-700 dark:text-green-300 mb-2">Login Successful!</div>
+          <div className="text-lg text-green-800 dark:text-green-200 mb-4">Redirecting to your dashboard...</div>
+          <div className="w-8 h-8 border-4 border-green-400/30 border-t-green-600 rounded-full animate-spin" />
+        </div>
       </div>
     )
   }

@@ -4,28 +4,32 @@ import { Card } from "@/components/ui/card"
 import { Play } from "lucide-react"
 import { EmptyVideosIllustration } from "@/components/empty-state-illustrations"
 
-export default function ClientVideos({ videos }: { videos: any[] }) {
+export default function ClientVideos({ videos, courses }: { videos: any[], courses: any[] }) {
   const [search, setSearch] = useState("")
   const [page, setPage] = useState(1)
+  const [filterCourse, setFilterCourse] = useState("all")
   const perPage = 9
 
-  // Filter videos by search
+  // Filter videos by search and course
   const filtered = useMemo(() => {
-    return videos.filter(v => v.title.toLowerCase().includes(search.toLowerCase()))
-  }, [videos, search])
+    return videos.filter(v =>
+      v.title.toLowerCase().includes(search.toLowerCase()) &&
+      (filterCourse === "all" || v.course_id === filterCourse)
+    )
+  }, [videos, search, filterCourse])
 
   // Paginate
   const totalPages = Math.ceil(filtered.length / perPage)
   const paginated = filtered.slice((page - 1) * perPage, page * perPage)
 
-  // Reset to page 1 on search change
-  React.useEffect(() => { setPage(1) }, [search])
+  // Reset to page 1 on search or filter change
+  React.useEffect(() => { setPage(1) }, [search, filterCourse])
 
   return (
     <div className="min-h-screen bg-background pt-24">
       <div className="container mx-auto px-4">
         <h1 className="text-3xl font-bold mb-8 text-center">Video Library</h1>
-        <div className="flex justify-center mb-8">
+        <div className="flex flex-col md:flex-row justify-center gap-4 mb-8">
           <input
             type="text"
             placeholder="Search videos..."
@@ -33,6 +37,16 @@ export default function ClientVideos({ videos }: { videos: any[] }) {
             onChange={e => setSearch(e.target.value)}
             className="w-full max-w-md px-4 py-2 rounded-lg border border-border bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-[#fe0002]"
           />
+          <select
+            className="w-full max-w-xs px-4 py-2 rounded-lg border border-border bg-card text-foreground"
+            value={filterCourse}
+            onChange={e => setFilterCourse(e.target.value)}
+          >
+            <option value="all">All Courses</option>
+            {courses.map((course: any) => (
+              <option key={course.id} value={course.id}>{course.name}</option>
+            ))}
+          </select>
         </div>
         {filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16">
@@ -44,10 +58,15 @@ export default function ClientVideos({ videos }: { videos: any[] }) {
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
               {paginated.map((video) => (
                 <Card key={video.id} className="glassmorphism-card border-0 hover-lift flex flex-col items-center p-4">
-                  <div className="w-full aspect-video mb-3">
+                  <div className="w-full aspect-video mb-3 rounded-md overflow-hidden">
                     <VideoEmbed url={video.link} />
                   </div>
                   <div className="font-semibold text-lg text-center break-words">{video.title}</div>
+                  {video.course_id && courses.length > 0 && (
+                    <div className="text-xs text-muted-foreground mt-1 mb-2">
+                      {courses.find((c: any) => c.id === video.course_id)?.name || "Unknown Course"}
+                    </div>
+                  )}
                   <a
                     href={video.link}
                     target="_blank"

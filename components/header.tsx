@@ -46,6 +46,7 @@ export default function Header({ user, userRole }: HeaderProps) {
   }, [isMenuOpen])
 
   const handleSignOut = async () => {
+    console.log('Sign out button clicked');
     const supabase = createClient()
     await supabase.auth.signOut()
     router.refresh()
@@ -61,93 +62,99 @@ export default function Header({ user, userRole }: HeaderProps) {
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-50 glassmorphism-nav">
-        <div className="container mx-auto px-6">
-          <div className="flex items-center justify-between h-16">
-            <Link href="/" className="flex items-center space-x-3 animate-slide-left">
-              <AnimatedLogo className="h-20 w-20" />
-              <span className="text-xl font-bold gradient-text">Lincoln E-Library</span>
-            </Link>
+    <header className="fixed top-0 left-0 right-0 z-50 glassmorphism-nav">
+      <div className="container mx-auto px-6">
+        <div className="flex items-center justify-between h-16">
+          <Link href="/" className="flex items-center space-x-3 animate-slide-left">
+              <AnimatedLogo className="h-10 w-10 lg:h-20 lg:w-20" responsive />
+            <span className="text-xl font-bold gradient-text hidden xl:inline">Lincoln E-Library</span>
+          </Link>
 
-            <nav className="hidden md:flex items-center space-x-1 animate-slide-up">
-              <Link href="/">
-                <Button variant="ghost" className={`px-4 py-2 rounded-xl transition-all duration-300 ${isActive("/") ? "bg-[#fe0002]/10 text-[#fe0002] font-semibold" : "text-foreground/70 hover:text-[#fe0002] hover:bg-[#fe0002]/5"}`}>
-                  <HomeIcon className="h-4 w-4 mr-2" /> Home
-                </Button>
-              </Link>
-              {user && (
-                <>
-                  <Link href={userRole === "admin" ? "/admin/dashboard" : "/student/dashboard"}>
-                    <Button variant="ghost" className={`px-4 py-2 rounded-xl transition-all duration-300 ${isActive(userRole === "admin" ? "/admin/dashboard" : "/student/dashboard") ? "bg-[#fe0002]/10 text-[#fe0002] font-semibold" : "text-foreground/70 hover:text-[#fe0002] hover:bg-[#fe0002]/5"}`}>
-                      <BookOpen className="h-4 w-4 mr-2" /> Dashboard
-                    </Button>
-                  </Link>
-                  {userRole === "student" && (
-                    <>
-                      <Link href="/student/ai-tutor">
-                        <Button variant="ghost" className={`px-4 py-2 rounded-xl transition-all duration-300 ${isActive("/student/ai-tutor") ? "bg-[#fe0002]/10 text-[#fe0002] font-semibold" : "text-foreground/70 hover:text-[#fe0002] hover:bg-[#fe0002]/5"}`}>
-                          <MessageSquare className="h-4 w-4 mr-2" /> AI Tutor
-                        </Button>
-                      </Link>
-                      <Link href="/videos">
-                        <Button variant="ghost" className={`px-4 py-2 rounded-xl transition-all duration-300 ${isActive("/videos") ? "bg-[#fe0002]/10 text-[#fe0002] font-semibold" : "text-foreground/70 hover:text-[#fe0002] hover:bg-[#fe0002]/5"}`}>
-                          <Play className="h-4 w-4 mr-2" /> Videos
-                        </Button>
-                      </Link>
-                    </>
-                  )}
-                  {userRole === "student" && (
-                    <Link href="/student/profile">
-                      <Button variant="ghost" className={`px-4 py-2 rounded-xl transition-all duration-300 ${isActive("/student/profile") ? "bg-[#fe0002]/10 text-[#fe0002] font-semibold" : "text-foreground/70 hover:text-[#fe0002] hover:bg-[#fe0002]/5"}`}>
-                        <UserCircle className="h-4 w-4 mr-2" /> Profile
+          <nav className="hidden md:flex items-center space-x-1 animate-slide-up">
+            <Link href="/">
+              <Button variant="ghost" className={`px-4 py-2 rounded-xl transition-all duration-300 ${isActive("/") ? "bg-[#fe0002]/10 text-[#fe0002] font-semibold" : "text-foreground/70 hover:text-[#fe0002] hover:bg-[#fe0002]/5"}`}>
+                <HomeIcon className="h-4 w-4 lg:mr-2" />
+                <span className="hidden lg:inline">Home</span>
+              </Button>
+            </Link>
+            {user && (
+              <>
+                <Link href={userRole === "admin" ? "/admin/dashboard" : "/student/dashboard"}>
+                  <Button variant="ghost" className={`px-4 py-2 rounded-xl transition-all duration-300 ${isActive(userRole === "admin" ? "/admin/dashboard" : "/student/dashboard") ? "bg-[#fe0002]/10 text-[#fe0002] font-semibold" : "text-foreground/70 hover:text-[#fe0002] hover:bg-[#fe0002]/5"}`}>
+                    <BookOpen className="h-4 w-4 lg:mr-2" />
+                    <span className="hidden lg:inline">Dashboard</span>
+                  </Button>
+                </Link>
+                {userRole === "student" && (
+                  <>
+                    <Link href="/student/ai-tutor">
+                      <Button variant="ghost" className={`px-4 py-2 rounded-xl transition-all duration-300 ${isActive("/student/ai-tutor") ? "bg-[#fe0002]/10 text-[#fe0002] font-semibold" : "text-foreground/70 hover:text-[#fe0002] hover:bg-[#fe0002]/5"}`}>
+                        <MessageSquare className="h-4 w-4 lg:mr-2" />
+                        <span className="hidden lg:inline">AI Tutor</span>
                       </Button>
                     </Link>
+                    <Link href="/videos">
+                      <Button variant="ghost" className={`px-4 py-2 rounded-xl transition-all duration-300 ${isActive("/videos") ? "bg-[#fe0002]/10 text-[#fe0002] font-semibold" : "text-foreground/70 hover:text-[#fe0002] hover:bg-[#fe0002]/5"}`}>
+                        <Play className="h-4 w-4 lg:mr-2" />
+                        <span className="hidden lg:inline">Videos</span>
+                      </Button>
+                    </Link>
+                  </>
+                )}
+                {userRole === "student" && (
+                  <Link href="/student/profile">
+                    <Button variant="ghost" className={`px-4 py-2 rounded-xl transition-all duration-300 ${isActive("/student/profile") ? "bg-[#fe0002]/10 text-[#fe0002] font-semibold" : "text-foreground/70 hover:text-[#fe0002] hover:bg-[#fe0002]/5"}`}>
+                      <UserCircle className="h-4 w-4 lg:mr-2" />
+                      <span className="hidden lg:inline">Profile</span>
+                    </Button>
+                  </Link>
+                )}
+              </>
+            )}
+          </nav>
+
+          <div className="hidden md:flex items-center space-x-3 animate-slide-right">
+            {userRole === "admin" && <NotificationBell userRole={userRole} />}
+
+            <Button variant="ghost" size="sm" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} className="glassmorphism-card hover:scale-110 transition-all duration-300 p-2 rounded-xl">
+              {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            </Button>
+
+            {user ? (
+              <div className="flex items-center space-x-3">
+                <div className="glassmorphism-card px-4 py-2 rounded-xl flex items-center space-x-3">
+                  <User className="h-4 w-4 text-[#fe0002]" />
+                  <span className="text-sm font-medium">{user.email?.split("@")[0]}</span>
+                  {userRole && (
+                    <span className="text-xs bg-[#fe0002] text-white px-2 py-1 rounded-full">{userRole}</span>
                   )}
-                </>
-              )}
-            </nav>
-
-            <div className="hidden md:flex items-center space-x-3 animate-slide-right">
-              {userRole === "admin" && <NotificationBell userRole={userRole} />}
-
-              <Button variant="ghost" size="sm" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} className="glassmorphism-card hover:scale-110 transition-all duration-300 p-2 rounded-xl">
-                {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-              </Button>
-
-              {user ? (
-                <div className="flex items-center space-x-3">
-                  <div className="glassmorphism-card px-4 py-2 rounded-xl flex items-center space-x-3">
-                    <User className="h-4 w-4 text-[#fe0002]" />
-                    <span className="text-sm font-medium">{user.email?.split("@")[0]}</span>
-                    {userRole && (
-                      <span className="text-xs bg-[#fe0002] text-white px-2 py-1 rounded-full">{userRole}</span>
-                    )}
-                  </div>
-                  <Button variant="outline" size="sm" onClick={handleSignOut} className="morph-button glassmorphism-card border-[#fe0002]/30 text-[#fe0002] hover:bg-[#fe0002] hover:text-white hover:scale-105 transition-all duration-300 bg-transparent">
-                    <LogOut className="h-4 w-4 mr-2" /> Sign Out
+                </div>
+                <Button variant="outline" size="sm" onClick={handleSignOut} className="morph-button glassmorphism-card border-[#fe0002]/30 text-[#fe0002] hover:bg-[#fe0002] hover:text-white hover:scale-105 transition-all duration-300 bg-transparent">
+                  <LogOut className="h-4 w-4 mr-2" />
+                  <span className="hidden 2xl:inline">Sign Out</span>
+                </Button>
+              </div>
+            ) : (
+              <div className="flex items-center space-x-2">
+                <Link href="/auth/login">
+                  <Button variant="outline" size="sm" className="morph-button glassmorphism-card border-[#fe0002]/30 text-[#fe0002] hover:bg-[#fe0002] hover:text-white hover:scale-105 transition-all duration-300 bg-transparent">
+                    Login
                   </Button>
-                </div>
-              ) : (
-                <div className="flex items-center space-x-2">
-                  <Link href="/auth/login">
-                    <Button variant="outline" size="sm" className="morph-button glassmorphism-card border-[#fe0002]/30 text-[#fe0002] hover:bg-[#fe0002] hover:text-white hover:scale-105 transition-all duration-300 bg-transparent">
-                      Login
-                    </Button>
-                  </Link>
-                  <Link href="/auth/signup">
-                    <Button size="sm" className="morph-button bg-gradient-to-r from-[#fe0002] to-[#ff4444] hover:from-[#fe0002]/90 hover:to-[#ff4444]/90 hover:scale-105 transition-all duration-300">
-                      Sign Up
-                    </Button>
-                  </Link>
-                </div>
-              )}
-            </div>
-
-            <button className="md:hidden glassmorphism-card p-2 rounded-xl hover:scale-110 transition-all duration-300" onClick={() => setIsMenuOpen(!isMenuOpen)} aria-label={isMenuOpen ? "Close menu" : "Open menu"} aria-expanded={isMenuOpen} aria-controls="mobile-menu">
-              {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-            </button>
+                </Link>
+                <Link href="/auth/signup">
+                  <Button size="sm" className="morph-button bg-gradient-to-r from-[#fe0002] to-[#ff4444] hover:from-[#fe0002]/90 hover:to-[#ff4444]/90 hover:scale-105 transition-all duration-300">
+                    Sign Up
+                  </Button>
+                </Link>
+              </div>
+            )}
           </div>
+
+          <button className="md:hidden glassmorphism-card p-2 rounded-xl hover:scale-110 transition-all duration-300" onClick={() => setIsMenuOpen(!isMenuOpen)} aria-label={isMenuOpen ? "Close menu" : "Open menu"} aria-expanded={isMenuOpen} aria-controls="mobile-menu">
+            {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
         </div>
+      </div>
       </header>
 
       {isMenuOpen && (

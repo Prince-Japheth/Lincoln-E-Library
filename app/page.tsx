@@ -8,6 +8,7 @@ import { BookOpen, Lock, Users, Filter, ArrowRight, CheckCircle } from "lucide-r
 import Link from "next/link"
 import { redirect } from "next/navigation"
 import { AnimatedBook, AnimatedLock, AnimatedFilter, AnimatedCap } from "@/components/animated-illustrations"
+import { Badge } from "@/components/ui/badge"
 
 export default async function HomePage() {
   const supabase = await createClient()
@@ -276,14 +277,19 @@ export default async function HomePage() {
         {videos && videos.length > 0 && (
           <section className="py-16 bg-card">
             <div className="container mx-auto px-4">
-              <h2 className="text-2xl font-bold mb-6 text-center text-card-foreground">Featured Videos</h2>
+              <h2 className="text-2xl font-bold mb-6 text-center text-card-foreground">Newest Videos</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 mb-6">
                 {videos.map((video) => (
                   <div key={video.id} className="glassmorphism-card border-0 rounded-lg shadow p-4 flex flex-col items-center text-card-foreground">
-                    <div className="w-full aspect-video mb-3">
+                    <div className="w-full aspect-video mb-3 rounded-md overflow-hidden">
                       <VideoEmbed url={video.link} />
                     </div>
                     <div className="font-semibold text-lg text-center break-words">{video.title}</div>
+                    {video.course_id && courses && courses.length > 0 && (
+                      <Badge className="mt-1 mb-2" variant="secondary">
+                        {courses.find((c: any) => c.id === video.course_id)?.name || "Unknown Course"}
+                      </Badge>
+                    )}
                   </div>
                 ))}
               </div>

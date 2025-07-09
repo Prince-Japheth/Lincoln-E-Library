@@ -6,9 +6,10 @@ import { Button } from "@/components/ui/button"
 import { useToast } from "@/components/ui/use-toast"
 import { createClient } from "@/lib/supabase/client"
 
-export default function VideoUploadDialog({ open, onOpenChange, onVideoAdded }: { open: boolean, onOpenChange: (v: boolean) => void, onVideoAdded?: (video: any) => void }) {
+export default function VideoUploadDialog({ open, onOpenChange, onVideoAdded, courses = [] }: { open: boolean, onOpenChange: (v: boolean) => void, onVideoAdded?: (video: any) => void, courses?: any[] }) {
   const [title, setTitle] = useState("")
   const [link, setLink] = useState("")
+  const [courseId, setCourseId] = useState("none")
   const [loading, setLoading] = useState(false)
   const { toast } = useToast()
   const supabase = createClient()
@@ -20,7 +21,7 @@ export default function VideoUploadDialog({ open, onOpenChange, onVideoAdded }: 
       return
     }
     setLoading(true)
-    const { data, error } = await supabase.from("videos").insert({ title, link }).select().single()
+    const { data, error } = await supabase.from("videos").insert({ title, link, course_id: courseId === "none" ? null : courseId }).select().single()
     setLoading(false)
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" })
@@ -28,6 +29,7 @@ export default function VideoUploadDialog({ open, onOpenChange, onVideoAdded }: 
       toast({ title: "Video added!", description: "The video has been uploaded.", variant: "success" })
       setTitle("")
       setLink("")
+      setCourseId("none")
       onOpenChange(false)
       onVideoAdded?.(data)
     }
@@ -54,6 +56,20 @@ export default function VideoUploadDialog({ open, onOpenChange, onVideoAdded }: 
             disabled={loading}
             required
           />
+          <div>
+            <label className="block mb-1 text-sm font-medium">Course (optional)</label>
+            <select
+              className="w-full px-3 py-2 rounded border border-border bg-card text-foreground"
+              value={courseId}
+              onChange={e => setCourseId(e.target.value)}
+              disabled={loading}
+            >
+              <option value="none">No Course</option>
+              {courses.map((course: any) => (
+                <option key={course.id} value={course.id}>{course.name}</option>
+              ))}
+            </select>
+          </div>
           <DialogFooter>
             <Button type="submit" loading={loading} disabled={loading} className="w-full bg-[#fe0002] text-white">
               {loading ? "Uploading..." : "Upload Video"}
