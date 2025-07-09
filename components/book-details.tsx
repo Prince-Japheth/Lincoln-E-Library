@@ -1,9 +1,12 @@
+"use client"
+
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Download, Eye, ArrowLeft } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
+import React from "react"
 
 interface BookDetailsProps {
   book: {
@@ -20,6 +23,7 @@ interface BookDetailsProps {
 }
 
 export default function BookDetails({ book }: BookDetailsProps) {
+  const [downloading, setDownloading] = React.useState(false)
   return (
     <div className="max-w-6xl mx-auto">
       <div className="mb-6">
@@ -66,22 +70,38 @@ export default function BookDetails({ book }: BookDetailsProps) {
 
             <div className="flex gap-4 mb-6">
               <Button size="lg" className="bg-[#fe0002] hover:bg-[#fe0002]/90" asChild>
-                <a href={book.file_url} target="_blank" rel="noopener noreferrer">
+                <a href={`/read/${book.id}`} target="_blank" rel="noopener noreferrer">
                   <Eye className="h-5 w-5 mr-2" />
                   Read Online
                 </a>
               </Button>
-
               <Button
                 size="lg"
                 variant="outline"
-                className="border-[#fe0002] text-[#fe0002] hover:bg-[#fe0002] hover:text-white bg-transparent"
-                asChild
+                className="border-[#fe0002] text-[#fe0002] hover:bg-[#fe0002] hover:text-white bg-transparent flex items-center gap-2"
+                disabled={downloading}
+                onClick={async () => {
+                  setDownloading(true)
+                  try {
+                    const response = await fetch(book.file_url)
+                    const blob = await response.blob()
+                    const url = window.URL.createObjectURL(blob)
+                    const a = document.createElement('a')
+                    a.href = url
+                    a.download = book.title + '.pdf'
+                    document.body.appendChild(a)
+                    a.click()
+                    a.remove()
+                    window.URL.revokeObjectURL(url)
+                  } catch (e) {
+                    alert('Failed to download PDF')
+                  } finally {
+                    setDownloading(false)
+                  }
+                }}
               >
-                <a href={book.file_url} download>
-                  <Download className="h-5 w-5 mr-2" />
-                  Download
-                </a>
+                {downloading ? <span className="loader mr-2"></span> : <Download className="h-5 w-5 mr-2" />}
+                {downloading ? 'Downloading...' : 'Download'}
               </Button>
             </div>
           </div>

@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   title: "Lincoln E-Library - Your Gateway to Knowledge",
   description:
     "Access thousands of books, AI-powered tutoring, and course-based learning in our beautiful digital library.",
-    generator: 'v0.dev'
+  generator: 'v0.dev'
 }
 
 export default async function RootLayout({
@@ -40,7 +40,7 @@ export default async function RootLayout({
       </head>
       <body>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-          <NextTopLoader 
+          <NextTopLoader
             color="#fe0002"
             initialPosition={0.08}
             crawlSpeed={200}
@@ -54,7 +54,7 @@ export default async function RootLayout({
           <AuthProtection user={user} userRole={userRole}>
             <HeaderWrapper user={user} userRole={userRole} />
             <Suspense fallback={<LoadingSkeleton />}>
-          {children}
+              {children}
             </Suspense>
           </AuthProtection>
           <Toaster />
@@ -64,7 +64,7 @@ export default async function RootLayout({
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Contact support on WhatsApp"
-            className="fixed z-[9999] bottom-6 right-6 md:bottom-8 md:right-8 bg-green-500 hover:bg-green-600 text-white rounded-full shadow-lg flex items-center justify-center w-14 h-14 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-400"
+            className="fixed z-[9999] bottom-28 right-6 md:bottom-12 md:right-8 bg-green-500 hover:bg-green-600 text-white rounded-full shadow-lg flex items-center justify-center w-14 h-14 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-400"
           >
             <FaWhatsapp size={32} />
           </a>

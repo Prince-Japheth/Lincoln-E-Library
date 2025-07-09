@@ -114,39 +114,42 @@ export default async function HomePage() {
                 </CardContent>
               </Card>
 
-              <Card className="glassmorphism-card border-0 hover-lift">
-                <CardHeader className="text-center pb-2">
-                  <AnimatedLock />
-                  <CardTitle className="text-lg">Private Books</CardTitle>
-                </CardHeader>
-                <CardContent className="text-center">
-                  <p className="text-sm text-muted-foreground mb-4">
-                    {privateBookCount} exclusive books for members
-                  </p>
-                  <Button asChild variant="outline" className="w-full">
-                    <Link href={profile?.role === 'admin' ? '/admin/dashboard' : '/student/dashboard'}>
-                      Browse Private
-                    </Link>
-                  </Button>
-                </CardContent>
-              </Card>
+              {/* Mobile horizontal scroll row for Private Books and Course-Based Learning */}
+              <div className="flex flex-row gap-4 overflow-x-auto md:grid md:grid-cols-2 md:gap-6">
+                <Card className="glassmorphism-card border-0 hover-lift min-w-[260px] md:min-w-0">
+                  <CardHeader className="text-center pb-2">
+                    <AnimatedLock />
+                    <CardTitle className="text-lg">Private Books</CardTitle>
+                  </CardHeader>
+                  <CardContent className="text-center">
+                    <p className="text-sm text-muted-foreground mb-4">
+                      {privateBookCount} exclusive books for members
+                    </p>
+                    <Button asChild variant="outline" className="w-full">
+                      <Link href={profile?.role === 'admin' ? '/admin/dashboard' : '/student/dashboard'}>
+                        Browse Private
+                      </Link>
+                    </Button>
+                  </CardContent>
+                </Card>
 
-              <Card className="glassmorphism-card border-0 hover-lift">
-                <CardHeader className="text-center pb-2">
-                  <AnimatedCap />
-                  <CardTitle className="text-lg">Course-Based Learning</CardTitle>
-                </CardHeader>
-                <CardContent className="text-center">
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Filter by course, genre, and status
-                  </p>
-                  <Button asChild variant="outline" className="w-full">
-                    <Link href={profile?.role === 'admin' ? '/admin/dashboard' : '/student/dashboard'}>
-                      Start Filtering
-                    </Link>
-                  </Button>
-                </CardContent>
-              </Card>
+                <Card className="glassmorphism-card border-0 hover-lift min-w-[260px] md:min-w-0">
+                  <CardHeader className="text-center pb-2">
+                    <AnimatedCap />
+                    <CardTitle className="text-lg">Course-Based Learning</CardTitle>
+                  </CardHeader>
+                  <CardContent className="text-center">
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Filter by course, genre, and status
+                    </p>
+                    <Button asChild variant="outline" className="w-full">
+                      <Link href={profile?.role === 'admin' ? '/admin/dashboard' : '/student/dashboard'}>
+                        Start Filtering
+                      </Link>
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
             </div>
 
             {/* Quick Stats */}

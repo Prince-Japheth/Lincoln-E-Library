@@ -4,7 +4,7 @@ import BookDetails from "@/components/book-details"
 import PDFViewer from "@/components/pdf-viewer"
 import { BookOpen } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import ReadOnlineButton from "@/components/read-online-button"
+import OpenInNewTabButton from "@/components/read-online-button"
 import { BookDetailsSkeleton, PDFViewerSkeleton } from "@/components/loading-skeleton"
 
 interface BookPageProps {
@@ -69,7 +69,7 @@ export default async function BookPage({ params }: BookPageProps) {
   const showAIButton = user && userRole === "student"
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pt-16">
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto">
           {/* Book Details Section */}
@@ -79,12 +79,12 @@ export default async function BookPage({ params }: BookPageProps) {
 
           {/* PDF Viewer Section - Only for authenticated users */}
           {user && (
-            <div className="glassmorphism-card rounded-lg shadow-lg p-6 hidden md:block">
+            <div id="pdf-viewer" className="glassmorphism-card rounded-lg p-6 hidden md:block border border-gray-200 dark:border-gray-700 shadow-none">
               <h2 className="text-2xl font-bold mb-6 text-foreground">Read Book</h2>
               
               {/* Read Online Button */}
               <div className="mb-4">
-                <ReadOnlineButton fileUrl={book.file_url} />
+                <OpenInNewTabButton bookId={book.id} />
               </div>
               
               <PDFViewer

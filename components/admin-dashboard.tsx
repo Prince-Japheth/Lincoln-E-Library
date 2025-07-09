@@ -488,57 +488,57 @@ export default function AdminDashboard({ books: initialBooks, bookRequests, cour
                 className="w-full sm:w-64"
               />
               <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto overflow-x-auto">
-                <Select value={filterCourse} onValueChange={value => { setFilterCourse(value); setCurrentPage(1); }}>
+              <Select value={filterCourse} onValueChange={value => { setFilterCourse(value); setCurrentPage(1); }}>
                   <SelectTrigger className="w-full sm:w-40 min-w-[140px]">
-                    <SelectValue placeholder="Filter by course" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <div className="p-2">
-                      <Input
-                        type="text"
-                        placeholder="Search courses..."
-                        value={courseSearch}
-                        onChange={e => setCourseSearch(e.target.value)}
-                        className="mb-2 w-full"
-                      />
-                    </div>
-                    <SelectItem value="all">All Courses</SelectItem>
-                    {filteredCourses.map((course) => (
-                      <SelectItem key={course.id} value={course.id}>{course.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Select value={filterStatus} onValueChange={value => { setFilterStatus(value); setCurrentPage(1); }}>
+                  <SelectValue placeholder="Filter by course" />
+                </SelectTrigger>
+                <SelectContent>
+                  <div className="p-2">
+                    <Input
+                      type="text"
+                      placeholder="Search courses..."
+                      value={courseSearch}
+                      onChange={e => setCourseSearch(e.target.value)}
+                      className="mb-2 w-full"
+                    />
+                  </div>
+                  <SelectItem value="all">All Courses</SelectItem>
+                  {filteredCourses.map((course) => (
+                    <SelectItem key={course.id} value={course.id}>{course.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={filterStatus} onValueChange={value => { setFilterStatus(value); setCurrentPage(1); }}>
                   <SelectTrigger className="w-full sm:w-32 min-w-[100px]">
-                    <SelectValue placeholder="Filter by status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All</SelectItem>
-                    <SelectItem value="public">Public</SelectItem>
-                    <SelectItem value="private">Private</SelectItem>
-                    <SelectItem value="draft">Draft</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Select value={filterGenre} onValueChange={value => { setFilterGenre(value); setCurrentPage(1); }}>
+                  <SelectValue placeholder="Filter by status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value="public">Public</SelectItem>
+                  <SelectItem value="private">Private</SelectItem>
+                  <SelectItem value="draft">Draft</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={filterGenre} onValueChange={value => { setFilterGenre(value); setCurrentPage(1); }}>
                   <SelectTrigger className="w-full sm:w-40 min-w-[120px]">
-                    <SelectValue placeholder="Filter by genre" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Genres</SelectItem>
-                    {uniqueGenres.map((genre) => (
-                      <SelectItem key={genre} value={genre}>{genre}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  <SelectValue placeholder="Filter by genre" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Genres</SelectItem>
+                  {uniqueGenres.map((genre) => (
+                    <SelectItem key={genre} value={genre}>{genre}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               </div>
               <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                <Button onClick={() => setShowCreateCourseDialog(true)} variant="outline" className="w-full sm:w-auto ml-0 sm:ml-2">
-                  <Plus className="h-4 w-4 mr-2" /> Create Course
-                </Button>
-                <Button onClick={() => setShowUploadDialog(true)} className="w-full sm:w-auto bg-[#fe0002] hover:bg-[#fe0002]/90">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Book
-                </Button>
+              <Button onClick={() => setShowCreateCourseDialog(true)} variant="outline" className="w-full sm:w-auto ml-0 sm:ml-2">
+                <Plus className="h-4 w-4 mr-2" /> Create Course
+              </Button>
+              <Button onClick={() => setShowUploadDialog(true)} className="w-full sm:w-auto bg-[#fe0002] hover:bg-[#fe0002]/90">
+                <Plus className="h-4 w-4 mr-2" />
+                Add Book
+              </Button>
               </div>
             </div>
           </div>
@@ -867,7 +867,7 @@ export default function AdminDashboard({ books: initialBooks, bookRequests, cour
                         {video.course_id && (
                           <div className="text-xs text-muted-foreground mt-1">
                             {uniqueCourses.find((c) => c.id === video.course_id)?.name || "Unknown Course"}
-                          </div>
+                      </div>
                         )}
                       </div>
                       <div className="mt-2 md:mt-0 flex gap-2">
