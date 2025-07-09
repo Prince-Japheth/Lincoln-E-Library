@@ -54,17 +54,23 @@ export default function Footer() {
           <div className="space-y-4">
             <h3 className="font-semibold text-foreground">Contact</h3>
             <div className="space-y-2">
-              <div className="flex items-center space-x-2 text-muted-foreground">
+              <a
+                href="mailto:info@lincoln.edu.ng"
+                className="flex items-center space-x-2 text-muted-foreground hover:text-[#fe0002] transition-colors"
+              >
                 <Mail className="h-4 w-4" />
-                <span>support@lincoln.edu</span>
-              </div>
-              <div className="flex items-center space-x-2 text-muted-foreground">
-                <Phone className="h-4 w-4" />
-                <span>+1 (555) 123-4567</span>
-              </div>
+                <span>info@lincoln.edu.ng</span>
+              </a>
+              <a
+                href="mailto:sheiduhalilu@lincoln.edu.ng"
+                className="flex items-center space-x-2 text-muted-foreground hover:text-[#fe0002] transition-colors"
+              >
+                <Mail className="h-4 w-4" />
+                <span>sheiduhalilu@lincoln.edu.ng</span>
+              </a>
               <div className="flex items-center space-x-2 text-muted-foreground">
                 <MapPin className="h-4 w-4" />
-                <span>Lincoln University</span>
+                <span>Lincoln University College, Azhata, FCT Abuja, Nigeria</span>
               </div>
             </div>
           </div>

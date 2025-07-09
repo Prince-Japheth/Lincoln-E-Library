@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Document, Page, pdfjs } from "react-pdf"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -37,23 +37,20 @@ export default function PDFViewer({ fileUrl, bookId, userId, title }: PDFViewerP
   const [readingProgress, setReadingProgress] = useState<number>(0)
   const [bookmarks, setBookmarks] = useState<number[]>([])
   const [showBookmarks, setShowBookmarks] = useState<boolean>(false)
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null)
   
   const supabase = createClient()
 
   useEffect(() => {
     loadReadingProgress()
     loadBookmarks()
-    
-    // Add timeout to prevent infinite loading
-    const timeout = setTimeout(() => {
-      if (loading) {
-        setError("PDF took too long to load. Please try again or download the file.")
-        setLoading(false)
-      }
-    }, 30000) // 30 seconds timeout
-
-    return () => clearTimeout(timeout)
-  }, [bookId, userId, loading])
+    setError("")
+    setLoading(true)
+    // Timeout will be started when PDF fetch begins
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current)
+    }
+  }, [bookId, userId, fileUrl])
 
   const loadReadingProgress = async () => {
     try {
@@ -144,16 +141,27 @@ export default function PDFViewer({ fileUrl, bookId, userId, title }: PDFViewerP
     }
   }
 
+  // Start timeout when PDF fetch begins
+  const onLoadStart = () => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current)
+    timeoutRef.current = setTimeout(() => {
+      setError("PDF took too long to load. Please try again or download the file.")
+      setLoading(false)
+    }, 45000)
+  }
+
   const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
     setNumPages(numPages)
     setLoading(false)
     setError("")
+    if (timeoutRef.current) clearTimeout(timeoutRef.current)
   }
 
-  const onDocumentLoadError = (error: Error) => {
-    setError("Failed to load PDF")
+  const onDocumentLoadError = (err: Error) => {
+    setError("Failed to load PDF: " + (err?.message || "Unknown error"))
     setLoading(false)
-    console.error("PDF load error:", error)
+    if (timeoutRef.current) clearTimeout(timeoutRef.current)
+    console.error("PDF load error:", err)
   }
 
   const changePage = (offset: number) => {
@@ -182,27 +190,23 @@ export default function PDFViewer({ fileUrl, bookId, userId, title }: PDFViewerP
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          {/* Custom Animated PDF Loading Illustration */}
-          <div className="relative w-16 h-16 mx-auto mb-4">
-            {/* PDF Document */}
+      <div className="w-full flex justify-center">
+        <div className="w-full max-w-3xl glassmorphism-card rounded-lg shadow-lg p-8 flex flex-col items-center">
+          <div className="relative w-16 h-16 mb-6">
             <div className="absolute inset-0 bg-white border-2 border-gray-300 rounded-lg shadow-lg animate-pulse"></div>
-            {/* PDF Lines */}
             <div className="absolute top-2 left-2 right-2 space-y-1">
               <div className="h-1 bg-gray-300 rounded animate-pulse"></div>
               <div className="h-1 bg-gray-300 rounded w-3/4 animate-pulse"></div>
               <div className="h-1 bg-gray-300 rounded w-1/2 animate-pulse"></div>
             </div>
-            {/* Loading Dots */}
             <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 flex space-x-1">
               <div className="w-2 h-2 bg-[#fe0002] rounded-full animate-bounce"></div>
               <div className="w-2 h-2 bg-[#fe0002] rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
               <div className="w-2 h-2 bg-[#fe0002] rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
             </div>
           </div>
-          <p className="text-lg font-medium text-gray-600">Loading PDF...</p>
-          <p className="text-sm text-gray-500 mt-2">This may take a moment</p>
+          <div className="text-muted-foreground text-base mb-2">Loading PDF...</div>
+          <div className="w-full h-2 bg-gradient-to-r from-[#fe0002] via-[#ff4444] to-[#fe0002] rounded-full animate-pulse" />
         </div>
       </div>
     )
@@ -210,13 +214,11 @@ export default function PDFViewer({ fileUrl, bookId, userId, title }: PDFViewerP
 
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <p className="text-red-500 mb-4">{error}</p>
-          <Button onClick={() => window.open(fileUrl, '_blank')}>
-            <Download className="h-4 w-4 mr-2" />
-            Download PDF
-          </Button>
+      <div className="w-full flex justify-center">
+        <div className="w-full max-w-3xl glassmorphism-card rounded-lg shadow-lg p-8 flex flex-col items-center text-center">
+          <div className="text-red-600 mb-4 text-lg font-semibold">{error}</div>
+          <Button variant="outline" onClick={() => window.location.reload()} className="mb-2">Retry</Button>
+          <a href={fileUrl} download className="text-blue-600 underline">Download PDF</a>
         </div>
       </div>
     )
@@ -367,11 +369,9 @@ export default function PDFViewer({ fileUrl, bookId, userId, title }: PDFViewerP
             file={fileUrl}
             onLoadSuccess={onDocumentLoadSuccess}
             onLoadError={onDocumentLoadError}
-            loading={
-              <div className="flex items-center justify-center p-8">
-                <BookOpen className="h-8 w-8 animate-spin" />
-              </div>
-            }
+            loading={null}
+            onSourceSuccess={onLoadStart}
+            onSourceError={onDocumentLoadError}
           >
             <Page
               pageNumber={pageNumber}

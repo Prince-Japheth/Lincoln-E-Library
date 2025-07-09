@@ -5,6 +5,7 @@ import PDFViewer from "@/components/pdf-viewer"
 import { BookOpen } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import ReadOnlineButton from "@/components/read-online-button"
+import { BookDetailsSkeleton, PDFViewerSkeleton } from "@/components/loading-skeleton"
 
 interface BookPageProps {
   params: Promise<{ id: string }>
@@ -66,6 +67,22 @@ export default async function BookPage({ params }: BookPageProps) {
 
   // Check if user is admin (admins shouldn't have AI tutor access)
   const showAIButton = user && userRole === "student"
+
+  // --- SKELETON LOADING LOGIC ---
+  if (!book || (book.is_public && !user)) {
+    return (
+      <div className="min-h-screen bg-background">
+        <main className="container mx-auto px-4 py-8">
+          <div className="max-w-6xl mx-auto">
+            <BookDetailsSkeleton />
+            <div className="mt-8">
+              <PDFViewerSkeleton />
+            </div>
+          </div>
+        </main>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-background">

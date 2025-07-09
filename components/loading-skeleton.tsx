@@ -55,6 +55,85 @@ export function ChatMessageSkeleton() {
   )
 }
 
+export function BookDetailsSkeleton() {
+  return (
+    <div className="max-w-6xl mx-auto animate-pulse">
+      <div className="mb-6">
+        <div className="inline-flex items-center text-[#fe0002]">
+          <div className="skeleton h-4 w-24 rounded mr-2" />
+        </div>
+      </div>
+      <div className="grid md:grid-cols-3 gap-8">
+        {/* Book Cover */}
+        <div className="md:col-span-1">
+          <div className="glassmorphism-card overflow-hidden">
+            <div className="aspect-[3/4] relative skeleton" />
+          </div>
+        </div>
+        {/* Book Information */}
+        <div className="md:col-span-2 space-y-6">
+          <div>
+            <div className="skeleton h-10 w-2/3 rounded mb-2" />
+            <div className="skeleton h-6 w-1/3 rounded mb-4" />
+            <div className="flex flex-wrap gap-2 mb-6">
+              <div className="skeleton h-6 w-16 rounded-full" />
+              <div className="skeleton h-6 w-20 rounded-full" />
+              <div className="skeleton h-6 w-14 rounded-full" />
+            </div>
+            <div className="flex gap-4 mb-6">
+              <div className="skeleton h-12 w-32 rounded" />
+              <div className="skeleton h-12 w-32 rounded" />
+            </div>
+          </div>
+          <div className="glassmorphism-card">
+            <div className="p-6">
+              <div className="skeleton h-6 w-40 rounded mb-4" />
+              <div className="skeleton h-4 w-full rounded mb-2" />
+              <div className="skeleton h-4 w-5/6 rounded mb-2" />
+              <div className="skeleton h-4 w-2/3 rounded" />
+            </div>
+          </div>
+          <div className="glassmorphism-card">
+            <div className="p-6">
+              <div className="skeleton h-6 w-40 rounded mb-4" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <div className="skeleton h-4 w-20 rounded mb-1" />
+                  <div className="skeleton h-4 w-24 rounded" />
+                </div>
+                <div>
+                  <div className="skeleton h-4 w-20 rounded mb-1" />
+                  <div className="skeleton h-4 w-24 rounded" />
+                </div>
+                <div>
+                  <div className="skeleton h-4 w-20 rounded mb-1" />
+                  <div className="skeleton h-4 w-24 rounded" />
+                </div>
+                <div>
+                  <div className="skeleton h-4 w-20 rounded mb-1" />
+                  <div className="skeleton h-4 w-24 rounded" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export function PDFViewerSkeleton() {
+  return (
+    <div className="glassmorphism-card rounded-lg shadow-lg p-6 animate-pulse">
+      <div className="h-8 w-40 skeleton rounded mb-6" />
+      <div className="mb-4">
+        <div className="h-10 w-32 skeleton rounded" />
+      </div>
+      <div className="w-full h-[500px] bg-muted-foreground/10 skeleton rounded-lg" />
+    </div>
+  )
+}
+
 export default function LoadingSkeleton() {
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90">
