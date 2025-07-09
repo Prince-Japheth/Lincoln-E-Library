@@ -100,14 +100,6 @@ export default function StudentDashboard({ books, courses, bookRequests: initial
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground mb-2">Student Dashboard</h1>
           <p className="text-muted-foreground">Welcome back, {user.full_name}! Access your complete library.</p>
-          <div className="mt-4">
-            <Button asChild className="bg-primary text-white hover:bg-primary/90">
-              <Link href="/videos">
-                <Play className="h-4 w-4 mr-2" />
-                Watch Videos
-              </Link>
-            </Button>
-          </div>
         </div>
 
         <Tabs defaultValue="library" className="mb-8">
@@ -165,7 +157,14 @@ export default function StudentDashboard({ books, courses, bookRequests: initial
             </div>
 
             {/* Search and Filters */}
-            <div className="pt-20 md:hidden mb-4 sticky top-0 z-30 ">
+            <div className="pt-0 md:hidden mb-4 sticky top-0 z-30 ">
+              <Button
+                onClick={() => setShowRequestDialog(true)}
+                className="w-full h-12 bg-[#fe0002] hover:bg-[#fe0002]/90"
+              >
+                Request Book
+              </Button>
+              <br /><br />
               <div className="flex gap-2 bg-background glassmorphism-card rounded-2xl p-5">
                 <Drawer>
                   <DrawerTrigger asChild>
@@ -256,13 +255,6 @@ export default function StudentDashboard({ books, courses, bookRequests: initial
                               <SelectItem value="private">Private</SelectItem>
                             </SelectContent>
                           </Select>
-
-                          <Button
-                            onClick={() => setShowRequestDialog(true)}
-                            className="h-12 bg-[#fe0002] hover:bg-[#fe0002]/90"
-                          >
-                            Request Book
-                          </Button>
                         </div>
                       </div>
 
