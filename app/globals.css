@@ -374,13 +374,15 @@ body {
 }
 
 .skeleton {
-  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  border-radius: 0.75rem; /* rounded-2xl */
+  background: linear-gradient(90deg, rgba(255,255,255,0.7) 25%, rgba(230,230,230,0.7) 50%, rgba(255,255,255,0.7) 75%);
   background-size: 200px 100%;
   animation: skeleton-loading 1.5s infinite;
 }
 
 .dark .skeleton {
-  background: linear-gradient(90deg, #374151 25%, #4b5563 50%, #374151 75%);
+  border-radius: 0.75rem;
+  background: linear-gradient(90deg, rgba(30,30,30,0.7) 25%, rgba(80,80,80,0.7) 50%, rgba(30,30,30,0.7) 75%);
   background-size: 200px 100%;
 }
 

@@ -51,6 +51,7 @@ export default function Header({ user, userRole }: HeaderProps) {
     await supabase.auth.signOut()
     router.refresh()
     router.push("/")
+    window.location.reload();
   }
 
   const isActive = (path: string) => pathname === path
