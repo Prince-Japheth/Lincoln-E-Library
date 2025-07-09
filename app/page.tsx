@@ -296,9 +296,9 @@ export default async function HomePage() {
                 ))}
               </div>
               {safeTotalVideos > 3 && (
-                <div className="text-center">
-                  <a href="/videos" className="inline-block px-6 py-2 bg-[#fe0002] text-white rounded hover:bg-[#fe0002]/90 font-semibold transition">See all videos</a>
-                </div>
+              <div className="text-center">
+                <a href="/videos" className="inline-block px-6 py-2 bg-[#fe0002] text-white rounded hover:bg-[#fe0002]/90 font-semibold transition">See all videos</a>
+              </div>
               )}
             </div>
           </section>
