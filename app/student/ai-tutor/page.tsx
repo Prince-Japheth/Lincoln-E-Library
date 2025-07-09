@@ -753,6 +753,24 @@ export default function AITutorPage() {
                   </div>
                 ))}
 
+                {isLoading && (
+                  <div className="flex gap-4 animate-slide-up justify-start">
+                    <Avatar className="h-10 w-10 glassmorphism-card">
+                      <AvatarFallback className="bg-gradient-to-r from-[#fe0002] to-[#ff4444] text-white">
+                        <Bot className="h-5 w-5" />
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="max-w-[80%] rounded-2xl px-6 py-4 glassmorphism-card flex items-center">
+                      <span className="flex items-center gap-2">
+                        <span className="inline-block w-2 h-2 bg-[#fe0002] rounded-full animate-bounce" style={{ animationDelay: '0s' }} />
+                        <span className="inline-block w-2 h-2 bg-[#fe0002] rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+                        <span className="inline-block w-2 h-2 bg-[#fe0002] rounded-full animate-bounce" style={{ animationDelay: '0.4s' }} />
+                      </span>
+                      <span className="ml-3 text-muted-foreground">AI is thinking...</span>
+                    </div>
+                  </div>
+                )}
+
                 {/* Suggestions */}
                 {messages.length === 1 && messages[0]?.role === "assistant" && !isLoading && (
                   <div className="space-y-4 animate-slide-up delay-300">
