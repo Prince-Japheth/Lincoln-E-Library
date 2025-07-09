@@ -9,6 +9,7 @@ import LoadingSkeleton from "@/components/loading-skeleton"
 import { Suspense } from "react"
 import AuthProtection from "@/components/auth-protection"
 import { Toaster } from "@/components/ui/toaster"
+import { FaWhatsapp } from 'react-icons/fa'
 
 export const metadata: Metadata = {
   title: "Lincoln E-Library - Your Gateway to Knowledge",
@@ -57,6 +58,16 @@ export default async function RootLayout({
             </Suspense>
           </AuthProtection>
           <Toaster />
+          {/* WhatsApp Floating Button */}
+          <a
+            href="https://wa.me/2347067925338"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Contact support on WhatsApp"
+            className="fixed z-[9999] bottom-6 right-6 md:bottom-8 md:right-8 bg-green-500 hover:bg-green-600 text-white rounded-full shadow-lg flex items-center justify-center w-14 h-14 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-400"
+          >
+            <FaWhatsapp size={32} />
+          </a>
         </ThemeProvider>
       </body>
     </html>
