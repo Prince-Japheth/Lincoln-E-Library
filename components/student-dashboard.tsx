@@ -311,79 +311,82 @@ export default function StudentDashboard({ books, courses, bookRequests: initial
             <div className="pt-14 md:sticky md:top-4 md:z-30 hidden md:block">
               <Card className="glassmorphism-card border-0 mb-8 bg-card ">
                 <CardContent className="p-6">
-                  {/* Search */}
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                    <Input
-                      placeholder="Search books, authors, or descriptions..."
-                      value={searchQuery}
-                      onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
-                      className="pl-10 h-12 bg-card text-card-foreground border border-border text-base"
-                    />
-                  </div>
+                  {/* Search and Filters in one line */}
+                  <div className="flex flex-col gap-4 mt-0 md:flex-row md:items-center md:gap-4">
+                    {/* Search */}
+                    <div className="relative flex-1 min-w-[220px]">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                      <Input
+                        placeholder="Search books, authors, or descriptions..."
+                        value={searchQuery}
+                        onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
+                        className="pl-10 h-12 bg-card text-card-foreground border border-border text-base w-full"
+                      />
+                    </div>
 
-                  {/* Filters */}
-                  <div className="flex flex-col sm:flex-row gap-4 mt-4">
-                    <Select value={selectedGenre} onValueChange={(value) => { setSelectedGenre(value); setCurrentPage(1); }}>
-                      <SelectTrigger className="h-12 bg-card text-card-foreground border border-border min-w-[150px]">
-                        <SelectValue placeholder="Genre" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-card text-card-foreground border border-border">
-                        <div className="p-2">
-                          <Input
-                            placeholder="Search genres..."
-                            value={genreSearch}
-                            onChange={e => setGenreSearch(e.target.value)}
-                            className="mb-2 h-8 text-sm bg-card text-card-foreground border border-border"
-                          />
-                        </div>
-                        {genres.filter(g => g === "all" || g.toLowerCase().includes(genreSearch.toLowerCase())).map((genre) => (
-                          <SelectItem key={genre} value={genre}>
-                            {genre === "all" ? "All Genres" : genre}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    {/* Filters */}
+                    <div className="flex flex-col gap-4 w-full md:flex-row md:items-center md:gap-4">
+                      <Select value={selectedGenre} onValueChange={(value) => { setSelectedGenre(value); setCurrentPage(1); }}>
+                        <SelectTrigger className="h-12 bg-card text-card-foreground border border-border min-w-[150px]">
+                          <SelectValue placeholder="Genre" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-card text-card-foreground border border-border">
+                          <div className="p-2">
+                            <Input
+                              placeholder="Search genres..."
+                              value={genreSearch}
+                              onChange={e => setGenreSearch(e.target.value)}
+                              className="mb-2 h-8 text-sm bg-card text-card-foreground border border-border"
+                            />
+                          </div>
+                          {genres.filter(g => g === "all" || g.toLowerCase().includes(genreSearch.toLowerCase())).map((genre) => (
+                            <SelectItem key={genre} value={genre}>
+                              {genre === "all" ? "All Genres" : genre}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
 
-                    <Select value={selectedCourse} onValueChange={(value) => { setSelectedCourse(value); setCurrentPage(1); }}>
-                      <SelectTrigger className="h-12 bg-card text-card-foreground border border-border min-w-[150px]">
-                        <SelectValue placeholder="Course" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-card text-card-foreground border border-border">
-                        <div className="p-2">
-                          <Input
-                            placeholder="Search courses..."
-                            value={courseSearch}
-                            onChange={e => setCourseSearch(e.target.value)}
-                            className="mb-2 h-8 text-sm bg-card text-card-foreground border border-border"
-                          />
-                        </div>
-                        <SelectItem value="all">All Courses</SelectItem>
-                        {courses.filter(c => c.name.toLowerCase().includes(courseSearch.toLowerCase())).map((course) => (
-                          <SelectItem key={course.id} value={course.name}>
-                            {course.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                      <Select value={selectedCourse} onValueChange={(value) => { setSelectedCourse(value); setCurrentPage(1); }}>
+                        <SelectTrigger className="h-12 bg-card text-card-foreground border border-border min-w-[150px]">
+                          <SelectValue placeholder="Course" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-card text-card-foreground border border-border">
+                          <div className="p-2">
+                            <Input
+                              placeholder="Search courses..."
+                              value={courseSearch}
+                              onChange={e => setCourseSearch(e.target.value)}
+                              className="mb-2 h-8 text-sm bg-card text-card-foreground border border-border"
+                            />
+                          </div>
+                          <SelectItem value="all">All Courses</SelectItem>
+                          {courses.filter(c => c.name.toLowerCase().includes(courseSearch.toLowerCase())).map((course) => (
+                            <SelectItem key={course.id} value={course.name}>
+                              {course.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
 
-                    <Select value={selectedStatus} onValueChange={(value) => { setSelectedStatus(value); setCurrentPage(1); }}>
-                      <SelectTrigger className="h-12 bg-card text-card-foreground border border-border min-w-[120px]">
-                        <SelectValue placeholder="Status" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-card text-card-foreground border border-border">
-                        <SelectItem value="all">All Books</SelectItem>
-                        <SelectItem value="public">Public</SelectItem>
-                        <SelectItem value="private">Private</SelectItem>
-                      </SelectContent>
-                    </Select>
+                      <Select value={selectedStatus} onValueChange={(value) => { setSelectedStatus(value); setCurrentPage(1); }}>
+                        <SelectTrigger className="h-12 bg-card text-card-foreground border border-border min-w-[120px]">
+                          <SelectValue placeholder="Status" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-card text-card-foreground border border-border">
+                          <SelectItem value="all">All Books</SelectItem>
+                          <SelectItem value="public">Public</SelectItem>
+                          <SelectItem value="private">Private</SelectItem>
+                        </SelectContent>
+                      </Select>
 
-                    <Button
-                      onClick={() => setShowRequestDialog(true)}
-                      className="h-12 bg-[#fe0002] hover:bg-[#fe0002]/90"
-                    >
-                      Request Book
-                    </Button>
+                      <Button
+                        onClick={() => setShowRequestDialog(true)}
+                        className="h-12 bg-[#fe0002] hover:bg-[#fe0002]/90 min-w-[140px]"
+                      >
+                        Request Book
+                      </Button>
+                    </div>
                   </div>
 
                   {/* Results count */}
