@@ -165,8 +165,8 @@ export default function StudentDashboard({ books, courses, bookRequests: initial
             </div>
 
             {/* Search and Filters */}
-            <div className="pt-20 p-5 md:hidden mb-4 sticky top-0 z-30 bg-background glassmorphism-card rounded-2xl">
-              <div className="flex gap-2">
+            <div className="pt-20 md:hidden mb-4 sticky top-0 z-30 ">
+              <div className="flex gap-2 bg-background glassmorphism-card rounded-2xl p-5">
                 <Drawer>
                   <DrawerTrigger asChild>
                     <Button
