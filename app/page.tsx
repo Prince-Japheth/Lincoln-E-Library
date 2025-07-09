@@ -63,9 +63,9 @@ export default async function HomePage() {
   const privateBookCount = (totalBooks || 0) - publicBookCount
 
   // Debug logging
-  console.log("Public books found:", publicBookCount)
-  console.log("Total books:", totalBooks)
-  console.log("Public books data:", publicBooks?.slice(0, 3)) // Show first 3 for debugging
+  // console.log("Public books found:", publicBookCount)
+  // console.log("Total books:", totalBooks)
+  // console.log("Public books data:", publicBooks?.slice(0, 3)) // Show first 3 for debugging
 
   const { data: videos } = await supabase.from("videos").select("*").order("created_at", { ascending: false }).limit(3)
 
