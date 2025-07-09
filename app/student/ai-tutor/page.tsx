@@ -153,6 +153,28 @@ export default function AITutorPage() {
     }
   }, [messages, isLoading]);
 
+  useEffect(() => {
+    if (currentChatId) {
+      localStorage.setItem('ai-tutor-current-chat-id', currentChatId)
+    } else {
+      localStorage.removeItem('ai-tutor-current-chat-id')
+    }
+  }, [currentChatId])
+
+  useEffect(() => {
+    if (chats.length > 0) {
+      const savedId = typeof window !== 'undefined' ? localStorage.getItem('ai-tutor-current-chat-id') : null
+      const found = savedId && chats.find(c => c.id === savedId)
+      if (found) {
+        setCurrentChatId(savedId)
+        setMessages(found.messages)
+      } else {
+        setCurrentChatId(chats[0].id)
+        setMessages(chats[0].messages)
+      }
+    }
+  }, [chats])
+
   const loadChatSessions = async (userId: string) => {
     try {
       // First get sessions
@@ -608,7 +630,7 @@ export default function AITutorPage() {
                   
                   {/* Search input */}
                   <div className="relative mb-4">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
                     <Input
                       placeholder="Search chats..."
                       value={chatSearch}

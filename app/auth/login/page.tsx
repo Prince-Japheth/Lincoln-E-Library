@@ -150,7 +150,7 @@ export default function LoginPage() {
           href="/"
           className="inline-flex items-center glassmorphism-card px-4 py-2 rounded-xl text-muted-foreground hover:text-foreground transition-colors"
         >
-          <ArrowLeft className="h-4 w-4 mr-2" />
+          <ArrowLeft className="h-4 w-4 mr-2 text-gray-500" />
           Back to Home
         </Link>
       </div>
@@ -182,11 +182,11 @@ export default function LoginPage() {
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsList className="grid w-full grid-cols-2 glassmorphism-card">
                 <TabsTrigger value="student" className="flex items-center space-x-2">
-                  <UserCheck className="h-4 w-4" />
+                  <UserCheck className="h-4 w-4 text-[#fe0002]" />
                   <span>Student</span>
                 </TabsTrigger>
                 <TabsTrigger value="admin" className="flex items-center space-x-2">
-                  <Shield className="h-4 w-4" />
+                  <Shield className="h-4 w-4 text-[#fe0002]" />
                   <span>Admin</span>
                 </TabsTrigger>
               </TabsList>
@@ -205,7 +205,7 @@ export default function LoginPage() {
                         Email Address
                       </Label>
                       <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                        <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-500" />
                         <Input
                           id="email"
                           type="email"
@@ -223,7 +223,7 @@ export default function LoginPage() {
                         Password
                       </Label>
                       <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                        <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-500" />
                         <Input
                           id="password"
                           type={showPassword ? "text" : "password"}
@@ -238,7 +238,7 @@ export default function LoginPage() {
                           className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                           onClick={() => setShowPassword(!showPassword)}
                         >
-                          {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                          {showPassword ? <EyeOff className="h-5 w-5 text-gray-500" /> : <Eye className="h-5 w-5 text-gray-500" />}
                         </button>
                       </div>
                     </div>
@@ -271,7 +271,7 @@ export default function LoginPage() {
                     ) : (
                       <div className="flex items-center space-x-2">
                         <span>Sign In</span>
-                        <ArrowRight className="h-4 w-4" />
+                        <ArrowRight className="h-4 w-4 text-[#fe0002]" />
                       </div>
                     )}
                   </Button>
@@ -298,7 +298,7 @@ export default function LoginPage() {
                         Admin Email
                       </Label>
                       <div className="relative">
-                        <Shield className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                        <Shield className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-500" />
                         <Input
                           id="admin-email"
                           type="email"
@@ -316,7 +316,7 @@ export default function LoginPage() {
                         Admin Password
                       </Label>
                       <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                        <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-500" />
                         <Input
                           id="admin-password"
                           type={showPassword ? "text" : "password"}
@@ -331,7 +331,7 @@ export default function LoginPage() {
                           className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                           onClick={() => setShowPassword(!showPassword)}
                         >
-                          {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                          {showPassword ? <EyeOff className="h-5 w-5 text-gray-500" /> : <Eye className="h-5 w-5 text-gray-500" />}
                         </button>
                       </div>
                     </div>
@@ -363,7 +363,7 @@ export default function LoginPage() {
                       </div>
                     ) : (
                       <div className="flex items-center space-x-2">
-                        <Shield className="h-4 w-4" />
+                        <Shield className="h-4 w-4 text-[#fe0002]" />
                         <span>Admin Sign In</span>
                       </div>
                     )}

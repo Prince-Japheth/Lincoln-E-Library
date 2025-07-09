@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { User, Camera, ArrowRight, CheckCircle } from "lucide-react"
+import { User, Camera, ArrowRight, CheckCircle, ArrowLeft, GraduationCap } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import AnimatedLogo from "@/components/animated-logo"
 

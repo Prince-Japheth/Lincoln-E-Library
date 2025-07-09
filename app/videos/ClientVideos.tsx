@@ -3,11 +3,14 @@ import React, { useState, useMemo } from "react"
 import { Card } from "@/components/ui/card"
 import { Play } from "lucide-react"
 import { EmptyVideosIllustration } from "@/components/empty-state-illustrations"
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select"
+import { Input } from "@/components/ui/input"
 
 export default function ClientVideos({ videos, courses }: { videos: any[], courses: any[] }) {
   const [search, setSearch] = useState("")
   const [page, setPage] = useState(1)
   const [filterCourse, setFilterCourse] = useState("all")
+  const [courseSearch, setCourseSearch] = useState("")
   const perPage = 9
 
   // Filter videos by search and course
@@ -29,24 +32,39 @@ export default function ClientVideos({ videos, courses }: { videos: any[], cours
     <div className="min-h-screen bg-background pt-24">
       <div className="container mx-auto px-4">
         <h1 className="text-3xl font-bold mb-8 text-center">Video Library</h1>
-        <div className="flex flex-col md:flex-row justify-center gap-4 mb-8">
-          <input
-            type="text"
-            placeholder="Search videos..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            className="w-full max-w-md px-4 py-2 rounded-lg border border-border bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-[#fe0002]"
-          />
-          <select
-            className="w-full max-w-xs px-4 py-2 rounded-lg border border-border bg-card text-foreground"
-            value={filterCourse}
-            onChange={e => setFilterCourse(e.target.value)}
-          >
-            <option value="all">All Courses</option>
-            {courses.map((course: any) => (
-              <option key={course.id} value={course.id}>{course.name}</option>
-            ))}
-          </select>
+        <div className="flex flex-row gap-4 mb-8 w-full justify-center items-center">
+          <div className="flex-1 min-w-[220px] max-w-md">
+            <Input
+              type="text"
+              placeholder="Search videos..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="w-full h-12 bg-card text-card-foreground border border-border text-base"
+            />
+          </div>
+          <div className="w-[220px]">
+            <Select value={filterCourse} onValueChange={setFilterCourse}>
+              <SelectTrigger className="w-full h-12 bg-card text-card-foreground border border-border">
+                <SelectValue placeholder="Course" />
+              </SelectTrigger>
+              <SelectContent className="bg-card text-card-foreground border border-border">
+                <div className="p-2">
+                  <Input
+                    placeholder="Search courses..."
+                    value={courseSearch}
+                    onChange={e => setCourseSearch(e.target.value)}
+                    className="mb-2 h-8 text-sm bg-card text-card-foreground border border-border"
+                  />
+                </div>
+                <SelectItem value="all">All Courses</SelectItem>
+                {courses
+                  .filter((c: any) => c.name.toLowerCase().includes(courseSearch.toLowerCase()))
+                  .map((course: any) => (
+                    <SelectItem key={course.id} value={course.id}>{course.name}</SelectItem>
+                  ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
         {filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16">

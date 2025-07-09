@@ -99,7 +99,7 @@ export default function SignUpPage() {
           href="/"
           className="inline-flex items-center glassmorphism-card px-4 py-2 rounded-xl text-muted-foreground hover:text-foreground transition-colors"
         >
-          <ArrowLeft className="h-4 w-4 mr-2" />
+          <ArrowLeft className="h-4 w-4 mr-2 text-gray-500" />
           Back to Home
         </Link>
       </div>
@@ -253,7 +253,7 @@ export default function SignUpPage() {
                 ) : (
                   <div className="flex items-center space-x-2">
                     <span>Create Student Account</span>
-                    <ArrowRight className="h-4 w-4" />
+                    <ArrowRight className="h-4 w-4 text-[#fe0002]" />
                   </div>
                 )}
               </Button>
