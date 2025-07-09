@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -16,8 +16,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Edit } from "lucide-react"
+import { Edit, Upload, FileText, Image, X, Check } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
+import { uploadFile } from "@/lib/supabase/storage"
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 
 interface BookEditDialogProps {
   open: boolean
@@ -41,6 +43,11 @@ export default function BookEditDialog({ open, onOpenChange, book, courses, onBo
   const [success, setSuccess] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const supabase = createClient()
+  const [coverImageFile, setCoverImageFile] = useState<File | null>(null)
+  const [bookFile, setBookFile] = useState<File | null>(null)
+  const [uploadProgress, setUploadProgress] = useState(0)
+  const coverImageRef = useRef<HTMLInputElement>(null)
+  const bookFileRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     if (book) {
@@ -61,14 +68,101 @@ export default function BookEditDialog({ open, onOpenChange, book, courses, onBo
       
       setCoverImageUrl(book.cover_image_url || "")
       setFileUrl(book.file_url || "")
+      setCoverImageFile(null)
+      setBookFile(null)
+      setUploadProgress(0)
     }
   }, [book])
+
+  const validateFiles = () => {
+    if (!bookFile && !fileUrl) {
+      setError("Please select a book file (PDF) or provide a link.")
+      return false
+    }
+    if (bookFile && bookFile.type !== "application/pdf") {
+      setError("Book file must be a PDF")
+      return false
+    }
+    if (bookFile && bookFile.size > 50 * 1024 * 1024) {
+      setError("Book file size must be less than 50MB")
+      return false
+    }
+    if (coverImageFile && coverImageFile.size > 5 * 1024 * 1024) {
+      setError("Cover image size must be less than 5MB")
+      return false
+    }
+    return true
+  }
+
+  const handleFileUpload = async () => {
+    if (!validateFiles()) return false
+    setUploadProgress(0)
+    try {
+      let bookUrlToUse = fileUrl
+      if (bookFile) {
+        const bookFileName = `${Date.now()}-${bookFile.name}`
+        const bookPath = `books/${bookFileName}`
+        const { url: bookUrl, error: bookError } = await uploadFile(
+          bookFile,
+          "books",
+          bookPath
+        )
+        if (bookError) {
+          setError(`Failed to upload book file: ${bookError.message}`)
+          return false
+        }
+        bookUrlToUse = bookUrl
+        setFileUrl(bookUrl)
+      }
+      setUploadProgress(50)
+      let coverUrlToUse = coverImageUrl
+      if (coverImageFile) {
+        const coverFileName = `${Date.now()}-${coverImageFile.name}`
+        const coverPath = `covers/${coverFileName}`
+        const { url: coverUrl, error: coverError } = await uploadFile(
+          coverImageFile,
+          "covers",
+          coverPath
+        )
+        if (coverError) {
+          setError(`Failed to upload cover image: ${coverError.message}`)
+          return false
+        }
+        coverUrlToUse = coverUrl
+        setCoverImageUrl(coverUrl)
+      }
+      setUploadProgress(100)
+      return true
+    } catch (error) {
+      setError("File upload failed")
+      return false
+    }
+  }
+
+  const handleCoverImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      setCoverImageFile(file)
+    }
+  }
+  const handleBookFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      setBookFile(file)
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setSubmitted(true)
     setLoading(true)
     setError("")
+    // Upload files first
+    const uploadSuccess = await handleFileUpload()
+    if (!uploadSuccess) {
+      setLoading(false)
+      return
+    }
 
     // Convert status to is_public value
     let isPublicValue: boolean | null = null
@@ -234,28 +328,118 @@ export default function BookEditDialog({ open, onOpenChange, book, courses, onBo
                 </Select>
               </div>
 
+              {/* Book File Section */}
               <div className="grid gap-2">
-                <Label htmlFor="edit-coverImageUrl">Cover Image URL</Label>
-                <Input
-                  id="edit-coverImageUrl"
-                  type="url"
-                  value={coverImageUrl}
-                  onChange={(e) => setCoverImageUrl(e.target.value)}
-                  placeholder="https://example.com/cover.jpg"
-                />
+                <Label>Book File (PDF) *</Label>
+                <Tabs defaultValue={bookFile ? "upload" : "link"} className="w-full">
+                  <TabsList className="mb-2">
+                    <TabsTrigger value="upload">Upload</TabsTrigger>
+                    <TabsTrigger value="link">Link</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="upload">
+                    <div className="flex items-center gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => bookFileRef.current?.click()}
+                        className="flex items-center gap-2"
+                      >
+                        <FileText className="h-4 w-4" />
+                        Select PDF File
+                      </Button>
+                      {bookFile && (
+                        <div className="flex items-center gap-2 text-sm text-green-600">
+                          <Check className="h-4 w-4" />
+                          {bookFile.name}
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setBookFile(null)}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                    <input
+                      ref={bookFileRef}
+                      type="file"
+                      accept=".pdf"
+                      onChange={handleBookFileChange}
+                      className="hidden"
+                    />
+                  </TabsContent>
+                  <TabsContent value="link">
+                    <Input
+                      type="url"
+                      placeholder="Paste PDF file link here"
+                      value={fileUrl}
+                      onChange={e => setFileUrl(e.target.value)}
+                    />
+                  </TabsContent>
+                </Tabs>
               </div>
-
+              {/* Cover Image Section */}
               <div className="grid gap-2">
-                <Label htmlFor="edit-fileUrl">Book File URL *</Label>
-                <Input
-                  id="edit-fileUrl"
-                  type="url"
-                  value={fileUrl}
-                  onChange={(e) => setFileUrl(e.target.value)}
-                  placeholder="https://example.com/book.pdf"
-                  aria-invalid={submitted && !fileUrl}
-                />
+                <Label>Cover Image (Optional)</Label>
+                <Tabs defaultValue={coverImageFile ? "upload" : "link"} className="w-full">
+                  <TabsList className="mb-2">
+                    <TabsTrigger value="upload">Upload</TabsTrigger>
+                    <TabsTrigger value="link">Link</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="upload">
+                    <div className="flex items-center gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => coverImageRef.current?.click()}
+                        className="flex items-center gap-2"
+                      >
+                        <Image className="h-4 w-4" />
+                        Select Cover Image
+                      </Button>
+                      {coverImageFile && (
+                        <div className="flex items-center gap-2 text-sm text-green-600">
+                          <Check className="h-4 w-4" />
+                          {coverImageFile.name}
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setCoverImageFile(null)}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                    <input
+                      ref={coverImageRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleCoverImageChange}
+                      className="hidden"
+                    />
+                  </TabsContent>
+                  <TabsContent value="link">
+                    <Input
+                      type="url"
+                      placeholder="Paste cover image link here"
+                      value={coverImageUrl}
+                      onChange={e => setCoverImageUrl(e.target.value)}
+                    />
+                  </TabsContent>
+                </Tabs>
               </div>
+              {uploadProgress > 0 && uploadProgress < 100 && (
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div 
+                    className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                    style={{ width: `${uploadProgress}%` }}
+                  ></div>
+                </div>
+              )}
             </div>
 
             <DialogFooter>
