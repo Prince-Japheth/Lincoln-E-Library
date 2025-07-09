@@ -95,10 +95,11 @@ export default function BookEditDialog({ open, onOpenChange, book, courses, onBo
   }
 
   const handleFileUpload = async () => {
-    if (!validateFiles()) return false
+    if (!validateFiles()) return { fileUrl: fileUrl, coverImageUrl: coverImageUrl }
     setUploadProgress(0)
+    let bookUrlToUse = fileUrl
+    let coverUrlToUse = coverImageUrl
     try {
-      let bookUrlToUse = fileUrl
       if (bookFile) {
         const bookFileName = `${Date.now()}-${bookFile.name}`
         const bookPath = `books/${bookFileName}`
@@ -109,13 +110,11 @@ export default function BookEditDialog({ open, onOpenChange, book, courses, onBo
         )
         if (bookError) {
           setError(`Failed to upload book file: ${bookError.message}`)
-          return false
+          return { fileUrl: fileUrl, coverImageUrl: coverImageUrl }
         }
         bookUrlToUse = bookUrl
-        setFileUrl(bookUrl)
       }
       setUploadProgress(50)
-      let coverUrlToUse = coverImageUrl
       if (coverImageFile) {
         const coverFileName = `${Date.now()}-${coverImageFile.name}`
         const coverPath = `covers/${coverFileName}`
@@ -126,16 +125,15 @@ export default function BookEditDialog({ open, onOpenChange, book, courses, onBo
         )
         if (coverError) {
           setError(`Failed to upload cover image: ${coverError.message}`)
-          return false
+          return { fileUrl: bookUrlToUse, coverImageUrl: coverImageUrl }
         }
         coverUrlToUse = coverUrl
-        setCoverImageUrl(coverUrl)
       }
       setUploadProgress(100)
-      return true
+      return { fileUrl: bookUrlToUse, coverImageUrl: coverUrlToUse }
     } catch (error) {
       setError("File upload failed")
-      return false
+      return { fileUrl: bookUrlToUse, coverImageUrl: coverUrlToUse }
     }
   }
 
@@ -158,12 +156,7 @@ export default function BookEditDialog({ open, onOpenChange, book, courses, onBo
     setLoading(true)
     setError("")
     // Upload files first
-    const uploadSuccess = await handleFileUpload()
-    if (!uploadSuccess) {
-      setLoading(false)
-      return
-    }
-
+    const { fileUrl: newFileUrl, coverImageUrl: newCoverImageUrl } = await handleFileUpload()
     // Convert status to is_public value
     let isPublicValue: boolean | null = null
     if (bookStatus === "public") {
@@ -172,7 +165,6 @@ export default function BookEditDialog({ open, onOpenChange, book, courses, onBo
       isPublicValue = false
     }
     // For "draft", isPublicValue remains null
-
     try {
       const { error } = await supabase
         .from("books")
@@ -183,12 +175,11 @@ export default function BookEditDialog({ open, onOpenChange, book, courses, onBo
           description,
           course_id: courseId === "none" ? null : courseId,
           is_public: isPublicValue,
-          cover_image_url: coverImageUrl,
-          file_url: fileUrl,
+          cover_image_url: newCoverImageUrl,
+          file_url: newFileUrl,
           updated_at: new Date().toISOString(),
         })
         .eq("id", book.id)
-
       if (error) {
         setError(error.message)
       } else {
@@ -202,8 +193,8 @@ export default function BookEditDialog({ open, onOpenChange, book, courses, onBo
             description,
             course_id: courseId === "none" ? null : courseId,
             is_public: isPublicValue,
-            cover_image_url: coverImageUrl,
-            file_url: fileUrl,
+            cover_image_url: newCoverImageUrl,
+            file_url: newFileUrl,
           })
         } else {
         setTimeout(() => {
