@@ -66,7 +66,7 @@ export default function Header({ user, userRole }: HeaderProps) {
       <div className="container mx-auto px-6">
         <div className="flex items-center justify-between h-16">
           <Link href="/" className="flex items-center space-x-3 animate-slide-left">
-              <AnimatedLogo className="h-10 w-10 lg:h-20 lg:w-20" responsive />
+              <AnimatedLogo className="h-20 w-20 md:h-10 md:w-10 lg:h-20 lg:w-20" responsive />
             <span className="text-xl font-bold gradient-text hidden xl:inline">Lincoln E-Library</span>
           </Link>
 
