@@ -51,6 +51,10 @@ export default function BookUploadDialog({ open, onOpenChange, courses, onBookAd
   const bookFileRef = useRef<HTMLInputElement>(null)
   const supabase = createClient()
 
+  const genres = [
+    "Science Fiction", "Fantasy", "Mystery", "Romance", "Thriller", "Non-Fiction", "Biography", "History", "Children", "Young Adult", "Self-Help", "Education", "Science", "Math", "Technology", "Art", "Comics", "Graphic Novel", "Horror", "Adventure", "Drama", "Poetry", "Religion", "Health", "Business", "Philosophy", "Travel", "Cooking", "Sports", "Music", "Classic", "Short Stories", "Memoir", "Politics", "Psychology", "Reference", "True Crime", "Other"
+  ];
+
   // Ensure unique courses by id
   const uniqueCourses = useMemo(() => Array.from(new Map(courses.map(c => [c.id, c])).values()), [courses])
   const filteredCourses = useMemo(

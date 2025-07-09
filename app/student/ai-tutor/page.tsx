@@ -31,6 +31,7 @@ import { EmptyChatsIllustration } from "@/components/empty-state-illustrations"
 import ReactMarkdown from 'react-markdown'
 import AnimatedLogo from "@/components/animated-logo"
 import { useToast } from "@/components/ui/use-toast"
+import remarkGfm from 'remark-gfm'
 
 interface Message {
   id: string
@@ -769,7 +770,7 @@ export default function AITutorPage() {
                       >
                         {message.role === "assistant" ? (
                           <div className="prose max-w-none dark:prose-invert">
-                            <ReactMarkdown>{message.content}</ReactMarkdown>
+                            <ReactMarkdown remarkPlugins={[remarkGfm]}>{message.content}</ReactMarkdown>
                           </div>
                         ) : (
                           <p className="whitespace-pre-wrap leading-relaxed">{message.content}</p>

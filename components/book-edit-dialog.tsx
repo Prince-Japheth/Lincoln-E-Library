@@ -48,6 +48,10 @@ export default function BookEditDialog({ open, onOpenChange, book, courses, onBo
   const [uploadProgress, setUploadProgress] = useState(0)
   const coverImageRef = useRef<HTMLInputElement>(null)
   const bookFileRef = useRef<HTMLInputElement>(null)
+  const [genreSuggestions, setGenreSuggestions] = useState<string[]>([]);
+  const genres = [
+    "Science Fiction", "Fantasy", "Mystery", "Romance", "Thriller", "Non-Fiction", "Biography", "History", "Children", "Young Adult", "Self-Help", "Education", "Science", "Math", "Technology", "Art", "Comics", "Graphic Novel", "Horror", "Adventure", "Drama", "Poetry", "Religion", "Health", "Business", "Philosophy", "Travel", "Cooking", "Sports", "Music", "Classic", "Short Stories", "Memoir", "Politics", "Psychology", "Reference", "True Crime", "Other"
+  ];
 
   useEffect(() => {
     if (book) {
@@ -156,7 +160,25 @@ export default function BookEditDialog({ open, onOpenChange, book, courses, onBo
     setLoading(true)
     setError("")
     // Upload files first
-    const { fileUrl: newFileUrl, coverImageUrl: newCoverImageUrl } = await handleFileUpload()
+    const uploadResult = await handleFileUpload()
+    if (!uploadResult) {
+      setError("File upload failed. Please try again.")
+      setLoading(false)
+      return
+    }
+    const { fileUrl: newFileUrl, coverImageUrl: newCoverImageUrl } = uploadResult
+    // If a new book file was selected but upload failed, show error and return
+    if (bookFile && !newFileUrl) {
+      setError("Book file upload failed. Please try again.")
+      setLoading(false)
+      return
+    }
+    // If a new cover image was selected but upload failed, show error and return
+    if (coverImageFile && !newCoverImageUrl) {
+      setError("Cover image upload failed. Please try again.")
+      setLoading(false)
+      return
+    }
     // Convert status to is_public value
     let isPublicValue: boolean | null = null
     if (bookStatus === "public") {
