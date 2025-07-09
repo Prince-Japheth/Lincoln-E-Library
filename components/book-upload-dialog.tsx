@@ -45,6 +45,7 @@ export default function BookUploadDialog({ open, onOpenChange, courses, onBookAd
   const [success, setSuccess] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
   const [courseSearch, setCourseSearch] = useState("")
+  const [genreSuggestions, setGenreSuggestions] = useState<string[]>([]);
   
   const coverImageRef = useRef<HTMLInputElement>(null)
   const bookFileRef = useRef<HTMLInputElement>(null)
@@ -244,8 +245,8 @@ export default function BookUploadDialog({ open, onOpenChange, courses, onBookAd
             <div className="text-green-600 mb-4">
               <Check className="h-16 w-16 mx-auto" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Book Added Successfully!</h3>
-            <p className="text-gray-600">The book has been added to the library.</p>
+            <h3 className="text-lg font-semibold text-foreground mb-2">Book Added Successfully!</h3>
+            <p className="text-foreground/80 dark:text-foreground mb-0">The book has been added to the library.</p>
           </div>
         ) : (
           <form onSubmit={handleSubmit}>
@@ -288,11 +289,31 @@ export default function BookUploadDialog({ open, onOpenChange, courses, onBookAd
                   <Input
                     id="genre"
                     value={genre}
-                    onChange={(e) => setGenre(e.target.value)}
-                    placeholder="e.g., Fiction, Science, History"
+                    onChange={e => {
+                      setGenre(e.target.value);
+                      // Filter suggestions as user types
+                      setGenreSuggestions(
+                        genres.filter(g => g.toLowerCase().includes(e.target.value.toLowerCase()) && g !== e.target.value)
+                      );
+                    }}
+                    placeholder="Genre"
                     aria-invalid={!genre}
                     className="w-full"
+                    autoComplete="off"
                   />
+                  {genre && genreSuggestions.length > 0 && (
+                    <div className="absolute z-10 bg-card border border-border rounded shadow mt-1 w-full max-h-40 overflow-auto">
+                      {genreSuggestions.map((g) => (
+                        <div
+                          key={g}
+                          className="px-4 py-2 cursor-pointer hover:bg-accent"
+                          onClick={() => { setGenre(g); setGenreSuggestions([]); }}
+                        >
+                          {g}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 <div className="grid gap-2">

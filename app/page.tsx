@@ -68,11 +68,13 @@ export default async function HomePage() {
   // console.log("Total books:", totalBooks)
   // console.log("Public books data:", publicBooks?.slice(0, 3)) // Show first 3 for debugging
 
-  const { data: videos } = await supabase.from("videos").select("*").order("created_at", { ascending: false }).limit(3)
+  const { data: videos, count: totalVideos } = await supabase.from("videos").select("*", { count: "exact" }).order("created_at", { ascending: false }).limit(3)
 
   // Limit publicBooks to 12 for homepage
   const limitedBooks = publicBooks.slice(0, 12)
   const showSeeAllBooks = publicBooks.length > 12
+
+  const safeTotalVideos = totalVideos ?? 0;
 
   return (
     <div className="min-h-screen bg-background">
@@ -293,9 +295,11 @@ export default async function HomePage() {
                   </div>
                 ))}
               </div>
-              <div className="text-center">
-                <a href="/videos" className="inline-block px-6 py-2 bg-[#fe0002] text-white rounded hover:bg-[#fe0002]/90 font-semibold transition">See all videos</a>
-              </div>
+              {safeTotalVideos > 3 && (
+                <div className="text-center">
+                  <a href="/videos" className="inline-block px-6 py-2 bg-[#fe0002] text-white rounded hover:bg-[#fe0002]/90 font-semibold transition">See all videos</a>
+                </div>
+              )}
             </div>
           </section>
         )}

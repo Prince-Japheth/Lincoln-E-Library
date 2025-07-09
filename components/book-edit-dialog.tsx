@@ -268,14 +268,35 @@ export default function BookEditDialog({ open, onOpenChange, book, courses, onBo
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="edit-genre">Genre *</Label>
+                  <Label htmlFor="genre">Genre *</Label>
                   <Input
-                    id="edit-genre"
+                    id="genre"
                     value={genre}
-                    onChange={(e) => setGenre(e.target.value)}
-                    placeholder="e.g., Fiction, Science, History"
-                    aria-invalid={submitted && !genre}
+                    onChange={e => {
+                      setGenre(e.target.value);
+                      // Filter suggestions as user types
+                      setGenreSuggestions(
+                        genres.filter(g => g.toLowerCase().includes(e.target.value.toLowerCase()) && g !== e.target.value)
+                      );
+                    }}
+                    placeholder="Genre"
+                    aria-invalid={!genre}
+                    className="w-full"
+                    autoComplete="off"
                   />
+                  {genre && genreSuggestions.length > 0 && (
+                    <div className="absolute z-10 bg-card border border-border rounded shadow mt-1 w-full max-h-40 overflow-auto">
+                      {genreSuggestions.map((g) => (
+                        <div
+                          key={g}
+                          className="px-4 py-2 cursor-pointer hover:bg-accent"
+                          onClick={() => { setGenre(g); setGenreSuggestions([]); }}
+                        >
+                          {g}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 <div className="grid gap-2">

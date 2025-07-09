@@ -131,8 +131,8 @@ export default function Header({ user, userRole }: HeaderProps) {
                   )}
                 </div>
                 <Button variant="outline" size="sm" onClick={handleSignOut} className="morph-button glassmorphism-card border-[#fe0002]/30 text-[#fe0002] hover:bg-[#fe0002] hover:text-white hover:scale-105 transition-all duration-300 bg-transparent">
-                  <LogOut className="h-4 w-4 mr-2" />
-                  <span className="hidden 2xl:inline">Sign Out</span>
+                  <LogOut className="h-4 w-4 lg:mr-2" />
+                  <span className="hidden lg:inline">Sign Out</span>
                 </Button>
               </div>
             ) : (
@@ -243,23 +243,23 @@ export default function Header({ user, userRole }: HeaderProps) {
                   <LogOut className="h-4 w-4 mr-2" /> Sign Out
                 </Button>
               ) : (
-                <>
+                <div className="flex flex-row gap-2 w-full">
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => handleNav("/auth/login")}
-                    className="morph-button glassmorphism-card border-[#fe0002]/30 text-[#fe0002] hover:bg-[#fe0002] hover:text-white hover:scale-105 transition-all duration-300 bg-transparent w-full justify-center"
+                    className="morph-button glassmorphism-card border-[#fe0002]/30 text-[#fe0002] hover:bg-[#fe0002] hover:text-white hover:scale-105 transition-all duration-300 bg-transparent flex-1 justify-center"
                   >
                     Login
                   </Button>
                   <Button
                     size="sm"
                     onClick={() => handleNav("/auth/signup")}
-                    className="morph-button bg-gradient-to-r from-[#fe0002] to-[#ff4444] hover:from-[#fe0002]/90 hover:to-[#ff4444]/90 hover:scale-105 transition-all duration-300 w-full justify-center"
+                    className="morph-button bg-gradient-to-r from-[#fe0002] to-[#ff4444] hover:from-[#fe0002]/90 hover:to-[#ff4444]/90 hover:scale-105 transition-all duration-300 flex-1 justify-center"
                   >
                     Sign Up
                   </Button>
-                </>
+                </div>
               )}
             </div>
           </nav>

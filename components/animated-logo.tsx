@@ -11,11 +11,18 @@ export default function AnimatedLogo({ className = "h-8 w-8", responsive = false
           className="w-full h-full object-contain block md:hidden"
           draggable={false}
         />
-        {/* md and up: favicon.png */}
+        {/* Medium: favicon.png */}
         <img
           src="/favicon.png"
           alt="Lincoln E-Library Favicon"
-          className="w-full h-full object-contain hidden md:block"
+          className="w-full h-full object-contain hidden md:block lg:hidden"
+          draggable={false}
+        />
+        {/* Large: logo.png */}
+        <img
+          src="/logo.png"
+          alt="Lincoln E-Library Logo"
+          className="w-full h-full object-contain hidden lg:block"
           draggable={false}
         />
       </div>
