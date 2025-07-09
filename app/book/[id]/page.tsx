@@ -79,7 +79,7 @@ export default async function BookPage({ params }: BookPageProps) {
 
           {/* PDF Viewer Section - Only for authenticated users */}
           {user && (
-            <div className="glassmorphism-card rounded-lg shadow-lg p-6">
+            <div className="glassmorphism-card rounded-lg shadow-lg p-6 hidden md:block">
               <h2 className="text-2xl font-bold mb-6 text-foreground">Read Book</h2>
               
               {/* Read Online Button */}
