@@ -590,8 +590,8 @@ export default function AITutorPage() {
             <div className="absolute inset-0 bg-black/60" onClick={() => setSidebarOpen(false)} />
             <div className="relative w-4/5 max-w-xs bg-background h-full shadow-xl chat-sidebar">
               {typeof window !== 'undefined' && window.innerWidth < 768 && (
-                <div className="flex justify-center mb-6 mt-2">
-                  <img src="/logo.png" alt="Lincoln Logo" className="h-16 w-16 object-contain" />
+                <div className="flex justify-center px-5 pt-5">
+                  <img src="/logo.png" alt="Lincoln Logo" className="w-full object-contain" />
                 </div>
               )}
               <div className="p-6 h-full flex flex-col">

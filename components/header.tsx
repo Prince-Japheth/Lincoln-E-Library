@@ -182,7 +182,7 @@ export default function Header({ user, userRole }: HeaderProps) {
               <X className="h-6 w-6" />
             </button>
             <div className="flex flex-col items-center gap-4 mt-8">
-              <AnimatedLogo className="h-20 w-20 mb-2" />
+              <AnimatedLogo className="w-full mb-2" />
               <span className="text-2xl font-bold gradient-text mb-6">Lincoln E-Library</span>
               <button
                 className={`w-full text-left px-4 py-3 rounded-xl text-lg font-semibold transition-all duration-300 ${isActive("/") ? "bg-[#fe0002]/10 text-[#fe0002]" : "text-foreground/80 hover:text-[#fe0002] hover:bg-[#fe0002]/5"}`}
