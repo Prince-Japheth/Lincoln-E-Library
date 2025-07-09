@@ -207,23 +207,25 @@ export default function Header({ user, userRole }: HeaderProps) {
         </div>
       </div>
 
-      {/* Mobile Menu Overlay */}
+      {/* Mobile Menu Bottom Sheet */}
       {isMenuOpen && (
         <div className="fixed inset-0 z-[9999]">
           {/* Backdrop */}
           <div
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300"
+            className="absolute inset-0 bg-black/60 transition-opacity duration-300"
             onClick={() => setIsMenuOpen(false)}
             aria-hidden="true"
           />
-          {/* Slide-in Menu */}
+          {/* Bottom Sheet */}
           <nav
             id="mobile-menu"
-            className="absolute left-0 top-0 h-full w-4/5 max-w-xs bg-background shadow-2xl p-6 flex flex-col gap-6 animate-slide-in-left focus:outline-none"
+            className="fixed left-0 bottom-0 w-full h-[80vh] max-h-[600px] bg-background rounded-t-3xl shadow-2xl p-6 flex flex-col gap-6 animate-slide-up focus:outline-none z-[10000]"
             tabIndex={0}
             aria-modal="true"
             role="dialog"
           >
+            {/* Drag Handle */}
+            <div className="mx-auto mb-4 w-12 h-1.5 bg-muted-foreground/40 rounded-full" />
             {/* Close Button */}
             <button
               className="absolute top-4 right-4 p-2 rounded-full hover:bg-accent focus:outline-none"
@@ -233,7 +235,7 @@ export default function Header({ user, userRole }: HeaderProps) {
               <X className="h-6 w-6" />
             </button>
             {/* Nav Links */}
-            <div className="flex flex-col gap-2 mt-8">
+            <div className="flex flex-col gap-2 mt-4">
               <button
                 className={`w-full text-left px-4 py-3 rounded-xl text-lg font-semibold transition-all duration-300 ${isActive("/") ? "bg-[#fe0002]/10 text-[#fe0002]" : "text-foreground/80 hover:text-[#fe0002] hover:bg-[#fe0002]/5"}`}
                 onClick={() => handleNav("/")}

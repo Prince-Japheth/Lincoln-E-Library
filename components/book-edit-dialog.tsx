@@ -362,8 +362,8 @@ export default function BookEditDialog({ open, onOpenChange, book, courses, onBo
                     />
                   </TabsContent>
                   <TabsContent value="link">
-                    <Input
-                      type="url"
+                <Input
+                  type="url"
                       placeholder="Paste PDF file link here"
                       value={fileUrl}
                       onChange={e => setFileUrl(e.target.value)}
@@ -414,8 +414,8 @@ export default function BookEditDialog({ open, onOpenChange, book, courses, onBo
                     />
                   </TabsContent>
                   <TabsContent value="link">
-                    <Input
-                      type="url"
+                <Input
+                  type="url"
                       placeholder="Paste cover image link here"
                       value={coverImageUrl}
                       onChange={e => setCoverImageUrl(e.target.value)}
