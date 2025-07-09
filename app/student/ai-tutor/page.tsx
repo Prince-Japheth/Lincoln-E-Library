@@ -22,10 +22,12 @@ import {
   Code,
   Copy,
   BookOpen,
+  Search,
 } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { EmptyChatsIllustration } from "@/components/empty-state-illustrations"
 import ReactMarkdown from 'react-markdown'
+import AnimatedLogo from "@/components/animated-logo"
 
 interface Message {
   id: string
@@ -58,7 +60,7 @@ export default function AITutorPage() {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState("")
   const [isLoading, setIsLoading] = useState(false)
-  const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [sidebarOpen, setSidebarOpen] = useState(typeof window !== 'undefined' && window.innerWidth >= 768);
   const [chatSearch, setChatSearch] = useState("")
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [chatToDelete, setChatToDelete] = useState<string | null>(null)
@@ -68,6 +70,7 @@ export default function AITutorPage() {
   const supabase = createClient()
   const [shouldAutoSend, setShouldAutoSend] = useState(false)
   const formRef = useRef<HTMLFormElement>(null)
+  const endOfMessagesRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const checkUser = async () => {
@@ -143,6 +146,12 @@ export default function AITutorPage() {
       setShouldAutoSend(false)
     }
   }, [shouldAutoSend, input, isLoading])
+
+  useEffect(() => {
+    if (endOfMessagesRef.current) {
+      endOfMessagesRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages, isLoading]);
 
   const loadChatSessions = async (userId: string) => {
     try {
@@ -447,6 +456,9 @@ export default function AITutorPage() {
       setCurrentChatId(chatId)
       setMessages(chat.messages)
     }
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      setSidebarOpen(false);
+    }
   }
 
   const deleteChat = async (chatId: string) => {
@@ -497,6 +509,11 @@ export default function AITutorPage() {
       <div className="flex pt-16 h-screen">
         {/* Sidebar for desktop */}
         <div className="hidden md:block w-80 transition-all duration-300 overflow-hidden chat-sidebar">
+          {typeof window !== 'undefined' && window.innerWidth < 768 && (
+            <div className="flex justify-center mb-6 mt-2">
+              <img src="/logo.png" alt="Lincoln Logo" className="w-full object-contain" />
+            </div>
+          )}
           <div className="p-6 h-full flex flex-col">
             <Button
               onClick={createNewChat}
@@ -510,12 +527,13 @@ export default function AITutorPage() {
               <h3 className="text-sm font-semibold text-muted-foreground mb-4 uppercase tracking-wide">Past Chats</h3>
               
               {/* Search input */}
-              <div className="mb-4">
+              <div className="relative mb-4">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Search chats..."
                   value={chatSearch}
                   onChange={(e) => setChatSearch(e.target.value)}
-                  className="h-8 text-sm"
+                  className="h-10 pl-10 pr-3 rounded-2xl glassmorphism-card border border-border focus:border-[#fe0002] shadow-sm text-sm bg-background"
                 />
               </div>
 
@@ -571,6 +589,11 @@ export default function AITutorPage() {
           <div className="fixed inset-0 z-50 flex md:hidden">
             <div className="absolute inset-0 bg-black/60" onClick={() => setSidebarOpen(false)} />
             <div className="relative w-4/5 max-w-xs bg-background h-full shadow-xl chat-sidebar">
+              {typeof window !== 'undefined' && window.innerWidth < 768 && (
+                <div className="flex justify-center mb-6 mt-2">
+                  <img src="/logo.png" alt="Lincoln Logo" className="h-16 w-16 object-contain" />
+                </div>
+              )}
               <div className="p-6 h-full flex flex-col">
                 <Button
                   onClick={createNewChat}
@@ -584,12 +607,13 @@ export default function AITutorPage() {
                   <h3 className="text-sm font-semibold text-muted-foreground mb-4 uppercase tracking-wide">Past Chats</h3>
                   
                   {/* Search input */}
-                  <div className="mb-4">
+                  <div className="relative mb-4">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                       placeholder="Search chats..."
                       value={chatSearch}
                       onChange={(e) => setChatSearch(e.target.value)}
-                      className="h-8 text-sm"
+                      className="h-10 pl-10 pr-3 rounded-2xl glassmorphism-card border border-border focus:border-[#fe0002] shadow-sm text-sm bg-background"
                     />
                   </div>
 
@@ -702,14 +726,6 @@ export default function AITutorPage() {
                       className={`flex gap-4 animate-slide-up ${message.role === "user" ? "justify-end" : "justify-start"}`}
                       style={{ animationDelay: `${index * 0.1}s` }}
                     >
-                      {message.role === "assistant" && (
-                        <Avatar className="h-10 w-10 glassmorphism-card">
-                          <AvatarFallback className="bg-gradient-to-r from-[#fe0002] to-[#ff4444] text-white">
-                            <Bot className="h-5 w-5" />
-                          </AvatarFallback>
-                        </Avatar>
-                      )}
-
                       <div
                         className={`max-w-[80%] rounded-2xl px-6 py-4 ${
                           message.role === "user"
@@ -725,14 +741,6 @@ export default function AITutorPage() {
                           <p className="whitespace-pre-wrap leading-relaxed">{message.content}</p>
                         )}
                       </div>
-
-                      {message.role === "user" && (
-                        <Avatar className="h-10 w-10 glassmorphism-card">
-                          <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-500 text-white">
-                            <User className="h-5 w-5" />
-                          </AvatarFallback>
-                        </Avatar>
-                      )}
                     </div>
                     
                     {/* Copy button and timestamp directly under AI messages */}
@@ -755,11 +763,6 @@ export default function AITutorPage() {
 
                 {isLoading && (
                   <div className="flex gap-4 animate-slide-up justify-start">
-                    <Avatar className="h-10 w-10 glassmorphism-card">
-                      <AvatarFallback className="bg-gradient-to-r from-[#fe0002] to-[#ff4444] text-white">
-                        <Bot className="h-5 w-5" />
-                      </AvatarFallback>
-                    </Avatar>
                     <div className="max-w-[80%] rounded-2xl px-6 py-4 glassmorphism-card flex items-center">
                       <span className="flex items-center gap-2">
                         <span className="inline-block w-2 h-2 bg-[#fe0002] rounded-full animate-bounce" style={{ animationDelay: '0s' }} />
@@ -770,6 +773,7 @@ export default function AITutorPage() {
                     </div>
                   </div>
                 )}
+                <div ref={endOfMessagesRef} />
 
                 {/* Suggestions */}
                 {messages.length === 1 && messages[0]?.role === "assistant" && !isLoading && (
@@ -812,14 +816,14 @@ export default function AITutorPage() {
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   placeholder="Ask me anything about your studies..."
-                  disabled={isLoading}
+                  disabled={false}
                   aria-invalid={false}
                   className="flex-1 h-12 glassmorphism-card border-0 text-base bg-white"
                 />
                 <Button
                   type="submit"
                   disabled={isLoading || !input.trim()}
-                  className="h-12 px-6 morph-button bg-gradient-to-r from-[#fe0002] to-[#ff4444] hover:from-[#fe0002]/90 hover:to-[#ff4444]/90 hover:scale-105 transition-all duration-300"
+                  className="h-12 w-12 rounded-full morph-button bg-gradient-to-r from-[#fe0002] to-[#ff4444] hover:from-[#fe0002]/90 hover:to-[#ff4444]/90 hover:scale-105 transition-all duration-300 flex items-center justify-center p-0"
                 >
                   <Send className="h-5 w-5" />
                 </Button>
