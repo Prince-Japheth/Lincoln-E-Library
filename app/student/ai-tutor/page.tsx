@@ -510,7 +510,7 @@ export default function AITutorPage() {
         {/* Sidebar for desktop */}
         <div className="hidden md:block w-80 transition-all duration-300 overflow-hidden chat-sidebar">
           {typeof window !== 'undefined' && window.innerWidth < 768 && (
-            <div className="flex justify-center mb-6 mt-2">
+            <div className="flex justify-center px-5 pt-5">
               <img src="/logo.png" alt="Lincoln Logo" className="w-full object-contain" />
             </div>
           )}
