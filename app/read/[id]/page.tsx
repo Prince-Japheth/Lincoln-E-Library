@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import PDFViewer from "@/components/pdf-viewer-client"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Maximize2, Minimize2, Menu, X } from "lucide-react"
+import { Maximize2, Minimize2, Menu, X, LayoutSidebar } from "lucide-react"
 import { Document, Page, pdfjs } from 'react-pdf'
 import 'react-pdf/dist/Page/AnnotationLayer.css'
 import 'react-pdf/dist/Page/TextLayer.css'
@@ -211,7 +211,7 @@ export default function ReadBookPage({ params }: { params: { id: string } }) {
             onClick={() => setSidebarOpen(!sidebarOpen)}
             className="bg-[#fe0002] text-white p-2 rounded-lg shadow hover:bg-[#ff4444] transition-all duration-200 lg:hidden"
           >
-            {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
+            {sidebarOpen ? <X size={20} /> : <LayoutSidebar size={20} />}
           </button>
           {/* Spacer to push fullscreen button to far right on desktop */}
           <div className="flex-1" />
@@ -239,7 +239,7 @@ export default function ReadBookPage({ params }: { params: { id: string } }) {
             onClick={() => setSidebarOpen(!sidebarOpen)}
             className="bg-[#fe0002] text-white p-2 rounded-lg shadow hover:bg-[#ff4444] transition-all duration-200 lg:hidden"
           >
-            {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
+            {sidebarOpen ? <X size={20} /> : <LayoutSidebar size={20} />}
           </button>
           {/* Spacer to push fullscreen button to far right on desktop */}
           <div className="flex-1" />
