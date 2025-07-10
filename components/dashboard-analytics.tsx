@@ -387,7 +387,7 @@ export default function DashboardAnalytics({ userRole }: DashboardAnalyticsProps
             <div className="space-y-3">
               {analytics.popularBooks.map((item, index) => (
                 <div key={item.book_id} className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-gray-100 rounded flex items-center justify-center text-sm font-medium">
+                  <div className="w-8 h-8 bg-muted rounded flex items-center justify-center text-sm font-medium text-foreground">
                     {index + 1}
                   </div>
                   <div className="flex-1">
@@ -420,7 +420,7 @@ export default function DashboardAnalytics({ userRole }: DashboardAnalyticsProps
                 <div className="flex items-center gap-2">
                   <div className="w-16 bg-gray-200 rounded-full h-2">
                     <div 
-                      className="bg-blue-600 h-2 rounded-full"
+                      className="bg-[#fe0002] h-2 rounded-full"
                       style={{ width: `${analytics.readingStats.averageProgress}%` }}
                     ></div>
                   </div>
