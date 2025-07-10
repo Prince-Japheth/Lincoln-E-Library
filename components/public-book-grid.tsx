@@ -151,65 +151,93 @@ export default function PublicBookGrid({ books, courses }: PublicBookGridProps) 
       {/* Books Grid */}
       <div className="bento-grid animate-slide-up delay-200">
         {displayedBooks.map((book, index) => (
-          <Card
-            key={book.id}
-            className="glassmorphism-card border-0 shadow-md overflow-hidden hover-lift group"
-            style={{ animationDelay: `${index * 0.1}s` }}
+          <Link
+            href={`/book/${book.id}`}
+            className="block group"
+            tabIndex={-1}
+            aria-label={`View details for ${book.title}`}
           >
-            <div className="aspect-square relative overflow-hidden rounded-t-2xl">
-              <Image
-                src={book.cover_image_url || "/placeholder.svg?height=400&width=300"}
-                alt={book.title}
-                fill
-                className="object-cover group-hover:scale-110 transition-transform duration-500"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-            </div>
-
-            <CardContent className="p-6">
-              <h3 className="font-bold text-xl mb-2 line-clamp-2 group-hover:text-[#fe0002] transition-colors duration-300">
-                {book.title}
-              </h3>
-              <p className="text-muted-foreground mb-3 font-medium">by {book.author}</p>
-
-              <div className="flex flex-wrap gap-2 mb-4">
-                <Badge className="bg-primary/10 text-primary border-0">
-                  {book.genre}
-                </Badge>
-                {book.courses && (
-                  <Badge className="border-primary/30 text-primary bg-transparent">
-                    {book.courses.name}
-                  </Badge>
-                )}
+            <Card
+              key={book.id}
+              className="glassmorphism-card border-0 shadow-md overflow-hidden hover-lift group cursor-pointer flex flex-col h-full"
+              style={{ animationDelay: `${index * 0.1}s` }}
+              tabIndex={0}
+              onClick={e => {
+                // Prevent nested button click from triggering card navigation
+                if (
+                  (e.target as HTMLElement).closest("button, a") &&
+                  (e.target as HTMLElement) !== e.currentTarget
+                ) {
+                  return
+                }
+                window.location.href = `/book/${book.id}`
+              }}
+              onKeyDown={e => {
+                if (e.key === "Enter" || e.key === " ") {
+                  window.location.href = `/book/${book.id}`
+                }
+              }}
+              role="link"
+              aria-label={`View details for ${book.title}`}
+            >
+              <div className="aspect-square relative overflow-hidden rounded-t-2xl">
+                <Image
+                  src={book.cover_image_url || "/placeholder.svg?height=400&width=300"}
+                  alt={book.title}
+                  fill
+                  className="object-cover group-hover:scale-110 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               </div>
 
-              <p className="text-muted-foreground line-clamp-3 leading-relaxed">{book.description}</p>
-            </CardContent>
+              <CardContent className="p-6 flex-1 flex flex-col">
+                <h3 className="font-bold text-xl mb-2 line-clamp-2 group-hover:text-[#fe0002] transition-colors duration-300">
+                  {book.title}
+                </h3>
+                <p className="text-muted-foreground mb-3 font-medium">by {book.author}</p>
 
-            <CardFooter className="p-6 pt-0 flex gap-3">
-              <Button
-                size="sm"
-                className="flex-1 bg-primary text-white hover:bg-primary/90 hover:scale-105 transition-all duration-300"
-                asChild
-              >
-                <Link href={`/book/${book.id}`}>
-                  <Eye className="h-4 w-4 mr-2" />
-                  View Details
-                </Link>
-              </Button>
+                <div className="flex flex-wrap gap-2 mb-4">
+                  <Badge className="bg-primary/10 text-primary border-0">
+                    {book.genre}
+                  </Badge>
+                  {book.courses && (
+                    <Badge className="border-primary/30 text-primary bg-transparent">
+                      {book.courses.name}
+                    </Badge>
+                  )}
+                </div>
+                {/* Book description removed as per instructions */}
+              </CardContent>
 
-              <Button
-                size="sm"
-                className="flex-1 morph-button bg-gradient-to-r from-[#fe0002] to-[#ff4444] hover:from-[#fe0002]/90 hover:to-[#ff4444]/90 hover:scale-105 transition-all duration-300"
-                asChild
-              >
-                <a href={book.file_url} target="_blank" rel="noopener noreferrer">
-                  <Download className="h-4 w-4 mr-2" />
-                  Read Now
-                </a>
-              </Button>
-            </CardFooter>
-          </Card>
+              <CardFooter className="p-6 pt-0 flex gap-3 mt-auto">
+                <Button
+                  size="sm"
+                  className="flex-1 bg-primary text-white hover:bg-primary/90 hover:scale-105 transition-all duration-300"
+                  asChild
+                  tabIndex={0}
+                  onClick={e => e.stopPropagation()}
+                >
+                  <Link href={`/book/${book.id}`}>
+                    <Eye className="h-4 w-4 mr-2" />
+                    View Details
+                  </Link>
+                </Button>
+
+                <Button
+                  size="sm"
+                  className="flex-1 morph-button bg-gradient-to-r from-[#fe0002] to-[#ff4444] hover:from-[#fe0002]/90 hover:to-[#ff4444]/90 hover:scale-105 transition-all duration-300"
+                  asChild
+                  tabIndex={0}
+                  onClick={e => e.stopPropagation()}
+                >
+                  <a href={book.file_url} download target="_blank" rel="noopener noreferrer">
+                    <Download className="h-4 w-4 mr-2" />
+                    Download
+                  </a>
+                </Button>
+              </CardFooter>
+            </Card>
+          </Link>
         ))}
       </div>
 

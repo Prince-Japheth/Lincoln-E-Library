@@ -95,28 +95,30 @@ export default async function HomePage() {
             </div>
 
             {/* Quick Access Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-              <Card className="glassmorphism-card border-0 hover-lift">
-                <CardHeader className="text-center pb-2">
-                  <AnimatedBook />
-                  <CardTitle className="text-lg">Complete Library</CardTitle>
-                </CardHeader>
-                <CardContent className="text-center">
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Access all {totalBooks} books in our collection
-                  </p>
-                  <Button asChild className="w-full bg-[#fe0002] hover:bg-[#fe0002]/90">
-                    <Link href={profile?.role === 'admin' ? '/admin/dashboard' : '/student/dashboard'}>
-                      Go to Dashboard
-                      <ArrowRight className="h-4 w-4 ml-2" />
-                    </Link>
-                  </Button>
-                </CardContent>
-              </Card>
-
-              {/* Mobile horizontal scroll row for Private Books and Course-Based Learning */}
-              <div className="flex flex-row gap-4 overflow-x-auto md:grid md:grid-cols-2 md:gap-6">
-                <Card className="glassmorphism-card border-0 hover-lift min-w-[260px] md:min-w-0">
+            <div className="mb-12">
+              {/* Complete Library card always on its own row */}
+              <div className="mb-6">
+                <Card className="glassmorphism-card border-0 hover-lift">
+                  <CardHeader className="text-center pb-2">
+                    <AnimatedBook />
+                    <CardTitle className="text-lg">Complete Library</CardTitle>
+                  </CardHeader>
+                  <CardContent className="text-center">
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Access all {totalBooks} books in our collection
+                    </p>
+                    <Button asChild className="w-full bg-[#fe0002] hover:bg-[#fe0002]/90">
+                      <Link href={profile?.role === 'admin' ? '/admin/dashboard' : '/student/dashboard'}>
+                        Go to Dashboard
+                        <ArrowRight className="h-4 w-4 ml-2" />
+                      </Link>
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
+              {/* Private Books and Course-Based Learning side by side on md+, stacked on mobile */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Card className="glassmorphism-card border-0 hover-lift">
                   <CardHeader className="text-center pb-2">
                     <AnimatedLock />
                     <CardTitle className="text-lg">Private Books</CardTitle>
@@ -132,8 +134,7 @@ export default async function HomePage() {
                     </Button>
                   </CardContent>
                 </Card>
-
-                <Card className="glassmorphism-card border-0 hover-lift min-w-[260px] md:min-w-0">
+                <Card className="glassmorphism-card border-0 hover-lift">
                   <CardHeader className="text-center pb-2">
                     <AnimatedCap />
                     <CardTitle className="text-lg">Course-Based Learning</CardTitle>

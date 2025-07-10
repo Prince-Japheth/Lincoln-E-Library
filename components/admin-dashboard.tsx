@@ -969,9 +969,9 @@ export default function AdminDashboard({ books: initialBooks, bookRequests, cour
                       <TableCell>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button size="sm" variant="outline">
+                        <Button size="sm" variant="outline">
                               <MoreVertical className="h-4 w-4" />
-                            </Button>
+                        </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem onClick={() => { setEditingUser(user); setShowEditUserDialog(true); }}>Edit</DropdownMenuItem>

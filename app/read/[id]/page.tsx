@@ -32,24 +32,24 @@ export default function ReadBookPage({ params }: { params: { id: string } }) {
       setLoading(true)
       setError(null)
       console.log('📖 Read Page: Loading book data for ID:', id)
-      
+
       const { data: userData } = await supabase.auth.getUser()
       setUser(userData.user)
       console.log('📖 Read Page: User loaded:', userData.user?.id)
-      
+
       const { data: bookData, error: bookError } = await supabase
         .from("books")
         .select("*")
         .eq("id", id)
         .single()
-      
+
       if (bookError || !bookData) {
         console.error('❌ Read Page: Book not found:', bookError)
         setError("Book not found.")
         setLoading(false)
         return
       }
-      
+
       console.log('✅ Read Page: Book loaded:', {
         title: bookData.title,
         author: bookData.author,
@@ -78,7 +78,15 @@ export default function ReadBookPage({ params }: { params: { id: string } }) {
   }
 
   useEffect(() => {
-    const onFull = () => setIsFullscreen(!!document.fullscreenElement)
+    const onFull = () => {
+      setIsFullscreen(!!document.fullscreenElement)
+      // Force a resize event after exiting fullscreen to trigger responsive recalculation
+      if (!document.fullscreenElement) {
+        setTimeout(() => {
+          window.dispatchEvent(new Event('resize'))
+        }, 100)
+      }
+    }
     document.addEventListener('fullscreenchange', onFull)
     return () => document.removeEventListener('fullscreenchange', onFull)
   }, [])
@@ -109,7 +117,14 @@ export default function ReadBookPage({ params }: { params: { id: string } }) {
     console.log('📖 Read Page: Page changed to', pageNumber, 'of', numPages, 'for book:', book?.title)
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }, [pageNumber, numPages, book?.title])
-  
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Skeleton className="w-44 h-64 mb-3 rounded-xl" />
+      </div>
+    )
+  }
   if (error || !book) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -117,7 +132,8 @@ export default function ReadBookPage({ params }: { params: { id: string } }) {
       </div>
     )
   }
-  if (!user) {
+  // Only require login if the book is private
+  if (!book.is_public && !user) {
     router.replace("/auth/login")
     return null
   }
@@ -181,6 +197,8 @@ export default function ReadBookPage({ params }: { params: { id: string } }) {
 
       {/* Main PDF Viewer */}
       <div className="flex-1 flex flex-col items-center justify-start min-h-screen bg-background relative lg:ml-64 pt-16 lg:pt-0">
+
+        {/* Pc header */}
         <div
           className={`
             w-full fixed top-0 z-20 px-4 py-2 pt-20 flex items-center
@@ -206,11 +224,14 @@ export default function ReadBookPage({ params }: { params: { id: string } }) {
             {isFullscreen ? "Exit Full Screen" : "Full Screen"}
           </button>
         </div>
+
+        {/* Medium and Mobile header */}
         <div
           className={`
-            w-full fixed top-0 z-20 px-4 py-2 pt-20 flex items-center
+            w-full fixed top-0 z-20 px-4 py-2 flex items-center
             lg:bg-transparent glassmorphism-card lg:right-0
             lg:hidden
+            ${isFullscreen ? '' : 'pt-20'}
           `}
         >
           {/* Sidebar toggle button (mobile only) */}
