@@ -1,6 +1,6 @@
 "use client"
 
-import React from "react"
+import React, { useImperativeHandle, forwardRef } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { Document, Page, pdfjs } from 'react-pdf'
 import 'react-pdf/dist/Page/AnnotationLayer.css'
@@ -21,7 +21,7 @@ interface PDFViewerProps {
   onVisiblePageChange?: (page: number) => void
 }
 
-export default function PDFViewer({ fileUrl, title, bookId, userId, pageNumber: controlledPageNumber, setPageNumber: setControlledPageNumber, onVisiblePageChange }: PDFViewerProps) {
+const PDFViewer = forwardRef(function PDFViewer({ fileUrl, title, bookId, userId, pageNumber: controlledPageNumber, setPageNumber: setControlledPageNumber, onVisiblePageChange }: PDFViewerProps, ref) {
   const [numPages, setNumPages] = React.useState<number>(0)
   const [internalPageNumber, setInternalPageNumber] = React.useState<number>(1)
   const pageNumber = controlledPageNumber !== undefined ? controlledPageNumber : internalPageNumber
@@ -181,6 +181,21 @@ export default function PDFViewer({ fileUrl, title, bookId, userId, pageNumber: 
         }
       });
   }, [userId, bookId, pageNumber, numPages, sessionStartTime, lastActivityTime]);
+
+  useImperativeHandle(ref, () => ({
+    scrollToPage: (page: number) => {
+      if (layout === 'continuous' && scrollContainerRef.current) {
+        const container = scrollContainerRef.current;
+        const pageEls = Array.from(container.querySelectorAll('[data-pdf-page]')) as HTMLElement[];
+        const el = pageEls[page - 1];
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      } else if (setPageNumber) {
+        setPageNumber(page);
+      }
+    }
+  }), [layout, numPages, setPageNumber]);
 
   function onDocumentLoadSuccess({ numPages: nextNumPages }: { numPages: number }) {
     setNumPages(nextNumPages)
@@ -345,7 +360,7 @@ export default function PDFViewer({ fileUrl, title, bookId, userId, pageNumber: 
       </div>
     </div>
   )
-}
+})
 
 function ProgressBar({ progress }: { progress: number }) {
   return (

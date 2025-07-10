@@ -27,6 +27,7 @@ export default function ReadBookPage({ params }: { params: { id: string } }) {
   const router = useRouter()
   const { resolvedTheme } = useTheme()
   const [sidebarActivePage, setSidebarActivePage] = useState<number>(1)
+  const pdfViewerRef = useRef<any>(null)
 
   useEffect(() => {
     async function fetchData() {
@@ -206,6 +207,10 @@ export default function ReadBookPage({ params }: { params: { id: string } }) {
                 }`}
               onClick={() => {
                 setPageNumber(i + 1)
+                setSidebarActivePage(i + 1)
+                if (pdfViewerRef.current && pdfViewerRef.current.scrollToPage) {
+                  pdfViewerRef.current.scrollToPage(i + 1)
+                }
                 if (window.innerWidth < 1024) {
                   setSidebarOpen(false)
                 }
@@ -284,6 +289,7 @@ export default function ReadBookPage({ params }: { params: { id: string } }) {
 
         <div className="w-full max-w-4xl mx-auto flex flex-col lg:bg-transparent bg-glassmorphism-card rounded-lg p-4 lg:p-0">
           <PDFViewer
+            ref={pdfViewerRef}
             fileUrl={book.file_url}
             bookId={book.id}
             userId={user.id}
