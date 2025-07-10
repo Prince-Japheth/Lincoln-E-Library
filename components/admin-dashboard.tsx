@@ -415,8 +415,20 @@ export default function AdminDashboard({ books: initialBooks, bookRequests, cour
     fetchVideos()
   }, [])
 
-  const handleVideoAdded = (video: any) => {
+  const handleVideoAdded = async (video: any) => {
     setVideos((prev) => [video, ...prev])
+    try {
+      await logAuditEvent({
+        userId: users[0]?.id,
+        action: "add_video",
+        tableName: "videos",
+        recordId: video.id,
+        newValues: video,
+      })
+      console.log("[AUDIT] Video added and audit log updated.")
+    } catch (err) {
+      console.error("[AUDIT] Failed to log video add:", err)
+    }
   }
 
   const handleEditVideo = (video: any) => {
@@ -426,20 +438,45 @@ export default function AdminDashboard({ books: initialBooks, bookRequests, cour
 
   const handleDeleteVideo = async (videoId: string) => {
     if (!window.confirm("Are you sure you want to delete this video? This action cannot be undone.")) return
+    const oldVideo = videos.find((v) => v.id === videoId)
     const { error } = await supabase.from("videos").delete().eq("id", videoId)
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" })
     } else {
       setVideos((prev) => prev.filter((v) => v.id !== videoId))
       toast({ title: "Video deleted", variant: "default" })
+      try {
+        await logAuditEvent({
+          userId: users[0]?.id,
+          action: "delete_video",
+          tableName: "videos",
+          recordId: videoId,
+          oldValues: oldVideo,
+        })
+        console.log("[AUDIT] Video deleted and audit log updated.")
+      } catch (err) {
+        console.error("[AUDIT] Failed to log video delete:", err)
+      }
     }
   }
 
-  const handleVideoUpdated = (updatedVideo: any) => {
+  const handleVideoUpdated = async (updatedVideo: any) => {
     setVideos((prev) => prev.map((v) => v.id === updatedVideo.id ? updatedVideo : v))
     setShowEditVideoDialog(false)
     setEditingVideo(null)
     toast({ title: "Video updated", variant: "default" })
+    try {
+      await logAuditEvent({
+        userId: users[0]?.id,
+        action: "edit_video",
+        tableName: "videos",
+        recordId: updatedVideo.id,
+        newValues: updatedVideo,
+      })
+      console.log("[AUDIT] Video edited and audit log updated.")
+    } catch (err) {
+      console.error("[AUDIT] Failed to log video edit:", err)
+    }
   }
 
   // Video filtering state

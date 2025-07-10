@@ -31,7 +31,7 @@ export default function VideoUploadDialog({ open, onOpenChange, onVideoAdded, co
       setLink("")
       setCourseId("none")
       onOpenChange(false)
-      onVideoAdded?.(data)
+      if (onVideoAdded) await onVideoAdded(data)
     }
   }
 

@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { createClient } from "@/lib/supabase/client"
 import { useToast } from "@/components/ui/use-toast"
 import { Loader2 } from "lucide-react"
+import { logAuditEvent } from "@/lib/utils"
 
 interface CourseEditDialogProps {
   open: boolean
@@ -22,6 +23,7 @@ export default function CourseEditDialog({ open, onOpenChange, course, onCourseU
   const [description, setDescription] = useState(course?.description || "")
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState<{ name?: string; description?: string }>({})
+  const [success, setSuccess] = useState(false)
   const supabase = createClient()
   const { toast } = useToast()
 
@@ -76,13 +78,27 @@ export default function CourseEditDialog({ open, onOpenChange, course, onCourseU
           variant: "destructive"
         })
       } else {
+        setSuccess(true)
         onCourseUpdated(data)
+        try {
+          await logAuditEvent({
+            userId: null, // TODO: Replace with actual admin user id if available
+            action: "edit_course",
+            tableName: "courses",
+            recordId: data.id,
+            newValues: data,
+          })
+          console.log("[AUDIT] Course edited and audit log updated.")
+        } catch (err) {
+          console.error("[AUDIT] Failed to log course edit:", err)
+        }
         onOpenChange(false)
         toast({
           title: "Course updated",
           description: `Course '${data.name}' was updated successfully!`,
           variant: "default"
         })
+        setTimeout(() => setSuccess(false), 2000)
       }
     } catch (err) {
       toast({
@@ -130,6 +146,12 @@ export default function CourseEditDialog({ open, onOpenChange, course, onCourseU
               <p className="text-sm text-red-600">{errors.description}</p>
             )}
           </div>
+
+          {success && (
+            <div className="mb-4 p-3 border border-green-600 bg-green-50 text-green-700 rounded flex items-center gap-2">
+              <span>Course updated successfully!</span>
+            </div>
+          )}
 
           <div className="flex justify-end space-x-2 pt-4">
             <Button

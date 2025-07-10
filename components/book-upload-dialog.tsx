@@ -21,6 +21,7 @@ import { Upload, FileText, Image, X, Check } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { uploadFile } from "@/lib/supabase/storage"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
+import { logAuditEvent } from "@/lib/utils"
 
 interface BookUploadDialogProps {
   open: boolean
@@ -186,6 +187,18 @@ export default function BookUploadDialog({ open, onOpenChange, courses, onBookAd
       } else {
         setSuccess(true)
         if (onBookAdded) onBookAdded(data)
+        try {
+          await logAuditEvent({
+            userId: null, // TODO: Replace with actual admin user id if available
+            action: "add_book",
+            tableName: "books",
+            recordId: data.id,
+            newValues: data,
+          })
+          console.log("[AUDIT] Book added and audit log updated.")
+        } catch (err) {
+          console.error("[AUDIT] Failed to log book add:", err)
+        }
         resetForm()
         setTimeout(() => {
           setSuccess(false)
@@ -244,22 +257,21 @@ export default function BookUploadDialog({ open, onOpenChange, courses, onBookAd
           </DialogDescription>
         </DialogHeader>
 
-        {success ? (
-          <div className="py-6 text-center">
-            <div className="text-green-600 mb-4">
-              <Check className="h-16 w-16 mx-auto" />
-            </div>
-            <h3 className="text-lg font-semibold text-foreground mb-2">Book Added Successfully!</h3>
-            <p className="text-foreground/80 dark:text-foreground mb-0">The book has been added to the library.</p>
-          </div>
-        ) : (
-          <form onSubmit={handleSubmit}>
+        {success && (
+          <Alert className="mb-4 border-green-600 bg-green-50">
+            <Check className="h-5 w-5 text-green-600" />
+            <AlertDescription>Book uploaded successfully!</AlertDescription>
+          </Alert>
+        )}
+        {error && (
+          <Alert className="mb-4 border-red-600 bg-red-50">
+            <X className="h-5 w-5 text-red-600" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+
+        <form onSubmit={handleSubmit}>
             <div className="grid gap-4 py-4">
-              {error && (
-                <Alert variant="destructive">
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              )}
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
@@ -496,7 +508,6 @@ export default function BookUploadDialog({ open, onOpenChange, courses, onBookAd
               </Button>
             </DialogFooter>
           </form>
-        )}
       </DialogContent>
     </Dialog>
   )

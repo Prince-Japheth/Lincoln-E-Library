@@ -20,6 +20,7 @@ import { Edit, Upload, FileText, Image, X, Check } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { uploadFile } from "@/lib/supabase/storage"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
+import { logAuditEvent } from "@/lib/utils"
 
 interface BookEditDialogProps {
   open: boolean
@@ -202,29 +203,45 @@ export default function BookEditDialog({ open, onOpenChange, book, courses, onBo
           updated_at: new Date().toISOString(),
         })
         .eq("id", book.id)
-      if (error) {
-        setError(error.message)
-      } else {
+      if (!error) {
         setSuccess(true)
-        if (onBookUpdated) {
-          onBookUpdated({
-            ...book,
-            title,
-            author,
-            genre,
-            description,
-            course_id: courseId === "none" ? null : courseId,
-            is_public: isPublicValue,
-            cover_image_url: newCoverImageUrl,
-            file_url: newFileUrl,
+        if (onBookUpdated) onBookUpdated({
+          ...book,
+          title,
+          author,
+          genre,
+          description,
+          course_id: courseId === "none" ? null : courseId,
+          is_public: isPublicValue,
+          cover_image_url: newCoverImageUrl,
+          file_url: newFileUrl,
+        })
+        try {
+          await logAuditEvent({
+            userId: null, // TODO: Replace with actual admin user id if available
+            action: "edit_book",
+            tableName: "books",
+            recordId: book.id,
+            newValues: {
+              ...book,
+              title,
+              author,
+              genre,
+              description,
+              course_id: courseId === "none" ? null : courseId,
+              is_public: isPublicValue,
+              cover_image_url: newCoverImageUrl,
+              file_url: newFileUrl,
+            },
           })
-        } else {
+          console.log("[AUDIT] Book edited and audit log updated.")
+        } catch (err) {
+          console.error("[AUDIT] Failed to log book edit:", err)
+        }
         setTimeout(() => {
           setSuccess(false)
           onOpenChange(false)
-          window.location.reload()
         }, 2000)
-        }
       }
     } catch (err) {
       setError("An unexpected error occurred")
@@ -246,6 +263,19 @@ export default function BookEditDialog({ open, onOpenChange, book, courses, onBo
           <DialogTitle>Edit Book</DialogTitle>
           <DialogDescription>Update the book information and settings.</DialogDescription>
         </DialogHeader>
+
+        {success && (
+          <Alert className="mb-4 border-green-600 bg-green-50">
+            <Check className="h-5 w-5 text-green-600" />
+            <AlertDescription>Book updated successfully!</AlertDescription>
+          </Alert>
+        )}
+        {error && (
+          <Alert className="mb-4 border-red-600 bg-red-50">
+            <X className="h-5 w-5 text-red-600" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
 
         {success ? (
           <div className="py-6 text-center">

@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { createClient } from "@/lib/supabase/client"
+import { logAuditEvent } from "@/lib/utils"
 
 interface CourseCreateDialogProps {
   open: boolean
@@ -16,6 +17,7 @@ export default function CourseCreateDialog({ open, onOpenChange, onCourseCreated
   const [description, setDescription] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+  const [success, setSuccess] = useState(false)
   const supabase = createClient()
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -27,10 +29,26 @@ export default function CourseCreateDialog({ open, onOpenChange, onCourseCreated
       if (error) {
         setError(error.message)
       } else {
+        setSuccess(true)
         onCourseCreated(data)
+        try {
+          await logAuditEvent({
+            userId: null, // TODO: Replace with actual admin user id if available
+            action: "add_course",
+            tableName: "courses",
+            recordId: data.id,
+            newValues: data,
+          })
+          console.log("[AUDIT] Course added and audit log updated.")
+        } catch (err) {
+          console.error("[AUDIT] Failed to log course add:", err)
+        }
         setName("")
         setDescription("")
-        onOpenChange(false)
+        setTimeout(() => {
+          setSuccess(false)
+          onOpenChange(false)
+        }, 2000)
       }
     } catch (err) {
       setError("An unexpected error occurred")
@@ -59,7 +77,16 @@ export default function CourseCreateDialog({ open, onOpenChange, onCourseCreated
             placeholder="Course description (optional)"
             className="w-full"
           />
-          {error && <div className="text-red-600 text-sm">{error}</div>}
+          {success && (
+            <div className="mb-4 p-3 border border-green-600 bg-green-50 text-green-700 rounded flex items-center gap-2">
+              <span>Course created successfully!</span>
+            </div>
+          )}
+          {error && (
+            <div className="mb-4 p-3 border border-red-600 bg-red-50 text-red-700 rounded flex items-center gap-2">
+              <span>{error}</span>
+            </div>
+          )}
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
