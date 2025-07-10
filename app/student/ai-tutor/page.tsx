@@ -755,7 +755,7 @@ export default function AITutorPage() {
           <div className="flex-1 overflow-hidden">
             <ScrollArea className="h-full p-6" ref={scrollAreaRef}>
               <div className="max-w-4xl mx-auto space-y-6">
-                {messages.map((message, index) => (
+                {(messages.slice().sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())).map((message, index) => (
                   <div key={message.id}>
                     <div
                       className={`flex gap-4 animate-slide-up ${message.role === "user" ? "justify-end" : "justify-start"}`}

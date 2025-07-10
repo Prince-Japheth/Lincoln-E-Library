@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
+import pdfParse from 'pdf-parse'
 
 const SYSTEM_PROMPT = `
 You are Lincoln E-Library's AI Tutor.
@@ -149,7 +150,7 @@ You are a helpful, conversational AI tutor. If the user asks if a video exists, 
       if (Array.isArray(dbResult) && dbResult.length > 0 && dbResult[0].title) {
         // Books
         const bookList = dbResult.map(
-          (b: any) => `${b.title}${b.author ? ` by ${b.author}` : ""}${b.genre ? ` (${b.genre})` : ""}`
+          (b: any) => `${b.id ? `[${b.title}](/book/${b.id})` : b.title}${b.author ? ` by ${b.author}` : ""}${b.genre ? ` (${b.genre})` : ""}`
         ).join("\n")
         return NextResponse.json({
           response: `Here are the books I found:\n\n${bookList}`,
