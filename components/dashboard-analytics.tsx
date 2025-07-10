@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, forwardRef, useImperativeHandle } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -50,13 +50,17 @@ interface DashboardAnalyticsProps {
   userRole: string
 }
 
-export default function DashboardAnalytics({ userRole }: DashboardAnalyticsProps) {
+const DashboardAnalytics = forwardRef(function DashboardAnalytics({ userRole }: DashboardAnalyticsProps, ref) {
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null)
   const [loading, setLoading] = useState(true)
   const [timeRange, setTimeRange] = useState("7d")
   const [error, setError] = useState<string | null>(null)
   
   const supabase = createClient()
+
+  useImperativeHandle(ref, () => ({
+    refresh: () => loadAnalytics()
+  }))
 
   useEffect(() => {
     loadAnalytics()
@@ -146,7 +150,7 @@ export default function DashboardAnalytics({ userRole }: DashboardAnalyticsProps
 
     const { data } = await supabase
       .from("audit_logs")
-      .select("*")
+      .select(`*, user_profiles: user_id (full_name, email)`)
       .gte("created_at", startDate.toISOString())
       .order("created_at", { ascending: false })
       .limit(10)
@@ -179,7 +183,7 @@ export default function DashboardAnalytics({ userRole }: DashboardAnalyticsProps
       records: reads?.map(read => ({
         progressPercentage: read.progress_percentage,
         readingTimeMinutes: read.reading_time_minutes,
-        genre: read.books?.genre
+        genre: read.books?.[0]?.genre
       }))
     })
 
@@ -204,7 +208,7 @@ export default function DashboardAnalytics({ userRole }: DashboardAnalyticsProps
     // Calculate most read genre
     const genreCounts: { [key: string]: number } = {}
     reads.forEach(read => {
-      const genre = read.books?.genre || "Unknown"
+      const genre = read.books?.[0]?.genre || "Unknown"
       genreCounts[genre] = (genreCounts[genre] || 0) + 1
     })
 
@@ -580,7 +584,7 @@ export default function DashboardAnalytics({ userRole }: DashboardAnalyticsProps
                     </Tooltip>
                   </div>
                   <span className="text-sm font-medium">{analytics.readingStats.averageReadingTimeMinutes} minutes</span>
-                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -606,20 +610,93 @@ export default function DashboardAnalytics({ userRole }: DashboardAnalyticsProps
           <CardContent>
             <div className="space-y-3">
                 {analytics.recentActivity.length > 0 ? (
-                  analytics.recentActivity.map((activity) => (
-                <div key={activity.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">{activity.action}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {new Date(activity.created_at).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <Badge variant="outline" className="text-xs">
-                    {activity.table_name}
-                  </Badge>
-                </div>
-                  ))
+                  analytics.recentActivity.map((activity) => {
+                    // Parse actor name
+                    const actor = activity.user_profiles?.full_name || activity.user_profiles?.email || "Unknown user"
+                    // Parse action target
+                    let target = ""
+                    let changeSummary = ""
+                    let newVals = {}
+                    let oldVals = {}
+                    try {
+                      newVals = activity.new_values ? JSON.parse(activity.new_values) : {}
+                    } catch {}
+                    try {
+                      oldVals = activity.old_values ? JSON.parse(activity.old_values) : {}
+                    } catch {}
+                    // Determine target and change summary
+                    if (activity.action.startsWith("edit_")) {
+                      // For edits, show what changed
+                      const changes = []
+                      for (const key in newVals) {
+                        if (key === "role" && oldVals[key] !== undefined && newVals[key] !== oldVals[key]) {
+                          changes.push(`Role: ${oldVals[key]} → ${newVals[key]}`)
+                        } else if (key === "title" && oldVals[key] !== undefined && newVals[key] !== oldVals[key]) {
+                          changes.push(`Title: "${oldVals[key]}" → "${newVals[key]}"`)
+                        } else if (key === "name" && oldVals[key] !== undefined && newVals[key] !== oldVals[key]) {
+                          changes.push(`Name: "${oldVals[key]}" → "${newVals[key]}"`)
+                        } else if (key === "email" && oldVals[key] !== undefined && newVals[key] !== oldVals[key]) {
+                          changes.push(`Email: ${oldVals[key]} → ${newVals[key]}`)
+                        } else if (key === "genre" && oldVals[key] !== undefined && newVals[key] !== oldVals[key]) {
+                          changes.push(`Genre: ${oldVals[key]} → ${newVals[key]}`)
+                        }
+                      }
+                      changeSummary = changes.join(", ")
+                      if (activity.table_name === "user_profiles") {
+                        target = newVals.full_name || oldVals.full_name || newVals.email || oldVals.email || "user"
+                      } else if (activity.table_name === "books") {
+                        target = newVals.title || oldVals.title || "book"
+                      } else if (activity.table_name === "courses") {
+                        target = newVals.name || oldVals.name || "course"
+                      } else if (activity.table_name === "videos") {
+                        target = newVals.title || oldVals.title || "video"
+                      }
+                    } else if (activity.action.startsWith("add_")) {
+                      if (activity.table_name === "user_profiles") {
+                        target = newVals.full_name || newVals.email || "user"
+                      } else if (activity.table_name === "books") {
+                        target = newVals.title || "book"
+                      } else if (activity.table_name === "courses") {
+                        target = newVals.name || "course"
+                      } else if (activity.table_name === "videos") {
+                        target = newVals.title || "video"
+                      }
+                      changeSummary = "Created"
+                    } else if (activity.action.startsWith("delete_")) {
+                      if (activity.table_name === "user_profiles") {
+                        target = oldVals.full_name || oldVals.email || "user"
+                      } else if (activity.table_name === "books") {
+                        target = oldVals.title || "book"
+                      } else if (activity.table_name === "courses") {
+                        target = oldVals.name || "course"
+                      } else if (activity.table_name === "videos") {
+                        target = oldVals.title || "video"
+                      }
+                      changeSummary = "Deleted"
+                    } else if (activity.action === "change_role") {
+                      target = newVals.full_name || oldVals.full_name || newVals.email || oldVals.email || "user"
+                      changeSummary = `Role changed to ${newVals.role}`
+                    } else {
+                      target = newVals.title || newVals.name || newVals.full_name || newVals.email || oldVals.title || oldVals.name || oldVals.full_name || oldVals.email || activity.table_name
+                    }
+                    return (
+                      <div key={activity.id} className="flex items-center gap-3 p-3 bg-muted rounded-lg">
+                        <div className="w-2 h-2 bg-primary rounded-full"></div>
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-foreground">
+                            {actor} {activity.action.replace(/_/g, ' ')} {target && `→ ${target}`}
+                          </p>
+                          {changeSummary && <p className="text-xs text-muted-foreground">{changeSummary}</p>}
+                          <p className="text-xs text-muted-foreground">
+                            {new Date(activity.created_at).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <Badge variant="outline" className="text-xs">
+                          {activity.table_name}
+                        </Badge>
+                      </div>
+                    )
+                  })
                 ) : (
                   <p className="text-sm text-muted-foreground text-center py-4">
                     No recent activity
@@ -650,4 +727,6 @@ export default function DashboardAnalytics({ userRole }: DashboardAnalyticsProps
     </div>
     </TooltipProvider>
   )
-} 
+})
+
+export default DashboardAnalytics 

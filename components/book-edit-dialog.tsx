@@ -206,16 +206,16 @@ export default function BookEditDialog({ open, onOpenChange, book, courses, onBo
       if (!error) {
         setSuccess(true)
         if (onBookUpdated) onBookUpdated({
-          ...book,
-          title,
-          author,
-          genre,
-          description,
-          course_id: courseId === "none" ? null : courseId,
-          is_public: isPublicValue,
-          cover_image_url: newCoverImageUrl,
-          file_url: newFileUrl,
-        })
+            ...book,
+            title,
+            author,
+            genre,
+            description,
+            course_id: courseId === "none" ? null : courseId,
+            is_public: isPublicValue,
+            cover_image_url: newCoverImageUrl,
+            file_url: newFileUrl,
+          })
         try {
           await logAuditEvent({
             userId: null, // TODO: Replace with actual admin user id if available

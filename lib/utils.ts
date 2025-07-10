@@ -26,7 +26,7 @@ export async function logAuditEvent({ userId, action, tableName, recordId, oldVa
   userAgent?: string,
 }) {
   const supabase = createClient()
-  await supabase.from("audit_logs").insert({
+  const { error, data } = await supabase.from("audit_logs").insert({
     user_id: userId,
     action,
     table_name: tableName,
@@ -35,7 +35,12 @@ export async function logAuditEvent({ userId, action, tableName, recordId, oldVa
     new_values: newValues ? JSON.stringify(newValues) : null,
     ip_address: ipAddress || null,
     user_agent: userAgent || (typeof navigator !== 'undefined' ? navigator.userAgent : null),
-  })
+  });
+  if (error) {
+    console.error("[AUDIT] logAuditEvent error:", error);
+    throw error;
+  }
+  return data;
 }
 
 /**

@@ -1,12 +1,12 @@
 "use client"
 
-import { useState, useMemo, useEffect } from "react"
+import React, { useState, useMemo, useEffect, useRef } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { BookOpen, Users, FileText, Plus, Eye, Edit, Trash2, Check, X, Bell, GraduationCap } from "lucide-react"
+import { BookOpen, Users, FileText, Plus, Eye, Edit, Trash2, Check, X, Bell, GraduationCap, MoreVertical } from "lucide-react"
 import BookUploadDialog from "@/components/book-upload-dialog"
 import BookEditDialog from "@/components/book-edit-dialog"
 import CourseCreateDialog from "@/components/course-create-dialog"
@@ -28,6 +28,9 @@ import {
 } from "@/components/ui/alert-dialog"
 import { createClient } from "@/lib/supabase/client"
 import { logAuditEvent, checkRateLimit } from "@/lib/utils"
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu"
+import DashboardAnalytics from "@/components/dashboard-analytics"
+
 
 interface AdminDashboardProps {
   books: any[]
@@ -56,7 +59,8 @@ export default function AdminDashboard({ books: initialBooks, bookRequests, cour
   // Memoize books, bookRequests, and users for performance
   const memoBooks = useMemo(() => books, [books])
   const memoBookRequests = useMemo(() => bookRequests, [bookRequests])
-  const memoUsers = useMemo(() => users, [users])
+  const [usersState, setUsersState] = useState(users)
+  const memoUsers = useMemo(() => usersState, [usersState])
 
   // Filter books by search
   const [search, setSearch] = useState("")
@@ -138,7 +142,6 @@ export default function AdminDashboard({ books: initialBooks, bookRequests, cour
               tableName: "books",
               recordId: selectedBookIds.join(","),
             })
-            window.location.reload()
           }
         } catch (err) {
           toast({ title: "Unexpected Error", description: "An unexpected error occurred.", variant: "destructive" })
@@ -186,7 +189,6 @@ export default function AdminDashboard({ books: initialBooks, bookRequests, cour
               tableName: "user_profiles",
               recordId: selectedUserIds.join(","),
             })
-            window.location.reload()
           }
         } catch (err) {
           toast({ title: "Unexpected Error", description: "An unexpected error occurred.", variant: "destructive" })
@@ -223,7 +225,6 @@ export default function AdminDashboard({ books: initialBooks, bookRequests, cour
               recordId: selectedUserIds.join(","),
               newValues: { role },
             })
-            window.location.reload()
           }
         } catch (err) {
           toast({ title: "Unexpected Error", description: "An unexpected error occurred.", variant: "destructive" })
@@ -306,7 +307,6 @@ export default function AdminDashboard({ books: initialBooks, bookRequests, cour
               recordId: bookId,
               oldValues: oldBook,
             })
-            window.location.reload()
           }
         } catch (error) {
           console.error("Error:", error)
@@ -497,9 +497,123 @@ export default function AdminDashboard({ books: initialBooks, bookRequests, cour
   const totalVideoPages = Math.ceil(filteredVideos.length / videosPerPage)
   const paginatedVideos = filteredVideos.slice((videoPage - 1) * videosPerPage, videoPage * videosPerPage)
 
+  // Add state for editing/deleting a user
+  const [editingUser, setEditingUser] = useState<any>(null)
+  const [showEditUserDialog, setShowEditUserDialog] = useState(false)
+  const [deletingUser, setDeletingUser] = useState<any>(null)
+  const [showDeleteUserDialog, setShowDeleteUserDialog] = useState(false)
+  const [userActionLoading, setUserActionLoading] = useState(false)
+  const [userActionSuccess, setUserActionSuccess] = useState("")
+  const [userActionError, setUserActionError] = useState("")
+
+  // User delete handler
+  const handleDeleteUser = async (user: any) => {
+    setUserActionLoading(true)
+    setUserActionError("")
+    setUserActionSuccess("")
+    try {
+      const { error } = await supabase.from("user_profiles").delete().eq("user_id", user.user_id)
+      if (error) {
+        setUserActionError(error.message)
+      } else {
+        setUserActionSuccess("User deleted successfully.")
+        setUsersState((prev: any[]) => prev.filter(u => u.user_id !== user.user_id))
+        await logAuditEvent({
+          userId: users[0]?.id,
+          action: "delete_user",
+          tableName: "user_profiles",
+          recordId: user.user_id,
+          oldValues: user,
+        })
+        console.log("[AUDIT] User deleted and audit log updated.")
+        if (analyticsRef.current && analyticsRef.current.refresh) analyticsRef.current.refresh()
+        setTimeout(() => {
+          setUserActionSuccess("")
+          setShowDeleteUserDialog(false)
+          setDeletingUser(null)
+          // window.location.reload(); // Removed: no full page reload
+        }, 1500)
+      }
+    } catch (err) {
+      setUserActionError("An unexpected error occurred.")
+      console.error("[AUDIT] Failed to log user delete:", err)
+    } finally {
+      setUserActionLoading(false)
+    }
+  }
+
+  // Defensive update for user role
+  const editUserInProgress = useRef(false)
+  const handleEditUser = async (user: any, newRole: string) => {
+    if (editUserInProgress.current) return // Prevent duplicate calls
+    editUserInProgress.current = true
+    setUserActionLoading(true)
+    setUserActionError("")
+    setUserActionSuccess("")
+    // Defensive: log user object and user_id
+    console.log("[DEBUG] handleEditUser called with user:", user)
+    if (!user || !user.user_id) {
+      setUserActionError("Invalid user object: user_id is missing or null.")
+      setUserActionLoading(false)
+      editUserInProgress.current = false
+      console.error("[DEBUG] Invalid user object passed to handleEditUser:", user)
+      return
+    }
+    try {
+      // Defensive: use maybeSingle and check for null
+      const { data: updated, error } = await supabase
+        .from("user_profiles")
+        .update({ role: newRole })
+        .eq("user_id", user.user_id)
+        .select()
+        .maybeSingle();
+      if (error) {
+        setUserActionError(error.message)
+      } else if (!updated) {
+        setUserActionError("No user found to update. Please check the user ID and try again.")
+        console.error("[DEBUG] No user found for user_id:", user.user_id)
+      } else {
+        setUserActionSuccess("User updated successfully.")
+        setUsersState((prev: any[]) => prev.map(u => u.user_id === user.user_id ? { ...u, role: newRole } : u))
+        try {
+          await logAuditEvent({
+            userId: users[0]?.user_id, // Use auth user id
+            action: "edit_user",
+            tableName: "user_profiles",
+            recordId: user.user_id,
+            newValues: { ...user, role: newRole },
+          })
+          console.log("[AUDIT] User edited and audit log updated.")
+        } catch (err) {
+          console.error("[AUDIT] Failed to log user edit:", err)
+        }
+        if (analyticsRef.current && analyticsRef.current.refresh) analyticsRef.current.refresh()
+        setTimeout(() => {
+          setUserActionSuccess("")
+          setShowEditUserDialog(false)
+          setEditingUser(null)
+          // window.location.reload(); // Removed: no full page reload
+        }, 1500)
+      }
+    } catch (err) {
+      setUserActionError("An unexpected error occurred.")
+      console.error("[AUDIT] Failed to log user edit:", err)
+    } finally {
+      setUserActionLoading(false)
+      editUserInProgress.current = false
+    }
+  }
+
+  // SQL to enforce uniqueness on user_id in user_profiles:
+  // ALTER TABLE user_profiles ADD CONSTRAINT user_profiles_user_id_unique UNIQUE (user_id);
+  const analyticsRef = useRef<{ refresh: () => void }>(null)
+
   return (
     <div className="space-y-6">
-      {/* Stats Cards - REMOVED, handled by DashboardAnalytics */}
+      <div className="mb-8">
+      <DashboardAnalytics userRole="admin" ref={analyticsRef} />
+      </div>
+      
       {/* Main Content Tabs */}
       <Tabs defaultValue="books" className="space-y-4">
         <TabsList>
@@ -839,7 +953,7 @@ export default function AdminDashboard({ books: initialBooks, bookRequests, cour
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {users.map((user) => (
+                  {usersState.map((user) => (
                     <TableRow key={user.id}>
                       <TableCell>
                         <input type="checkbox" checked={selectedUserIds.includes(user.id)} onChange={() => handleSelectUser(user.id)} />
@@ -851,9 +965,17 @@ export default function AdminDashboard({ books: initialBooks, bookRequests, cour
                       </TableCell>
                       <TableCell className="max-w-[80px] truncate whitespace-nowrap" title={new Date(user.created_at).toLocaleDateString()}>{new Date(user.created_at).toLocaleDateString()}</TableCell>
                       <TableCell>
-                        <Button size="sm" variant="outline">
-                          <Edit className="h-4 w-4" />
-                        </Button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button size="sm" variant="outline">
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => { setEditingUser(user); setShowEditUserDialog(true); }}>Edit</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => { setDeletingUser(user); setShowDeleteUserDialog(true); }}>Delete</DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -981,6 +1103,50 @@ export default function AdminDashboard({ books: initialBooks, bookRequests, cour
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {showEditUserDialog && editingUser && (
+        <Dialog open={showEditUserDialog} onOpenChange={setShowEditUserDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Edit User</DialogTitle>
+            </DialogHeader>
+            <div className="mb-4">Name: {editingUser.full_name}<br />Email: {editingUser.email}</div>
+            <div className="mb-4">
+              <label className="block mb-1">Role</label>
+              <select
+                className="w-full border rounded p-2"
+                value={editingUser.role}
+                onChange={e => handleEditUser(editingUser, e.target.value)}
+                disabled={userActionLoading}
+              >
+                <option value="student">Student</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
+            {userActionSuccess && <div className="text-green-600 mb-2">{userActionSuccess}</div>}
+            {userActionError && <div className="text-red-600 mb-2">{userActionError}</div>}
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowEditUserDialog(false)} disabled={userActionLoading}>Cancel</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
+      {showDeleteUserDialog && deletingUser && (
+        <Dialog open={showDeleteUserDialog} onOpenChange={setShowDeleteUserDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Delete User</DialogTitle>
+            </DialogHeader>
+            <div className="mb-4">Are you sure you want to delete user <b>{deletingUser.full_name}</b> ({deletingUser.email})?</div>
+            {userActionSuccess && <div className="text-green-600 mb-2">{userActionSuccess}</div>}
+            {userActionError && <div className="text-red-600 mb-2">{userActionError}</div>}
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowDeleteUserDialog(false)} disabled={userActionLoading}>Cancel</Button>
+              <Button variant="destructive" onClick={() => handleDeleteUser(deletingUser)} disabled={userActionLoading}>Delete</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   )
 }

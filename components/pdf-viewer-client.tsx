@@ -170,10 +170,10 @@ export default function PDFViewer({ fileUrl, title, bookId, userId, pageNumber: 
     <div className="w-full">
       <div
         ref={containerRef}
-        className={`w-full h-[600px] glassmorphism-card rounded-lg pt-5 overflow-x-auto flex flex-col items-center border ${resolvedTheme === 'light' ? 'border-gray-200' : 'border-gray-700'} shadow-none`}
+        className={`w-full glassmorphism-card rounded-lg pt-5 overflow-x-auto flex flex-col items-center border ${resolvedTheme === 'light' ? 'border-gray-200' : 'border-gray-700'} shadow-none`}
       >
         {/* <div className="w-full text-xs text-gray-400 px-4 pt-2 pb-1">PDF URL: {fileUrl}</div> */}
-        <div className="flex justify-center w-full flex-1 overflow-y-auto">
+        <div className="flex justify-center w-full overflow-y-auto">
           <Document
             file={pdfSource}
             onLoadSuccess={onDocumentLoadSuccess}

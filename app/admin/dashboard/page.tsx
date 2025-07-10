@@ -80,11 +80,6 @@ export default async function AdminDashboardPage() {
             </div>
           </div>
 
-          {/* Analytics Section */}
-          <div className="mb-8">
-            <DashboardAnalytics userRole="admin" />
-          </div>
-
           <AdminDashboard
             books={books || []}
             bookRequests={bookRequests || []}
