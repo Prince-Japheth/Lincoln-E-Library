@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { createClient } from "@/lib/supabase/client"
 import { useToast } from "@/components/ui/use-toast"
 import { Loader2 } from "lucide-react"
-import { logAuditEvent } from "@/lib/utils"
+import { logAuditEventWithProfileCheck } from "@/lib/utils"
 
 interface CourseEditDialogProps {
   open: boolean
@@ -81,8 +81,9 @@ export default function CourseEditDialog({ open, onOpenChange, course, onCourseU
         setSuccess(true)
         onCourseUpdated(data)
         try {
-          await logAuditEvent({
-            userId: null, // TODO: Replace with actual admin user id if available
+          const { data: { user } } = await supabase.auth.getUser();
+          await logAuditEventWithProfileCheck({
+            userId: user?.id,
             action: "edit_course",
             tableName: "courses",
             recordId: data.id,

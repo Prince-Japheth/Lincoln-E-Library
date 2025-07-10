@@ -84,6 +84,8 @@ export default function ReadBookPage({ params }: { params: { id: string } }) {
       if (!document.fullscreenElement) {
         setTimeout(() => {
           window.dispatchEvent(new Event('resize'))
+          // Reload the page on fullscreen exit for @/read
+          window.location.reload()
         }, 100)
       }
     }
@@ -118,13 +120,6 @@ export default function ReadBookPage({ params }: { params: { id: string } }) {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }, [pageNumber, numPages, book?.title])
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Skeleton className="w-44 h-64 mb-3 rounded-xl" />
-      </div>
-    )
-  }
   if (error || !book) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -139,7 +134,11 @@ export default function ReadBookPage({ params }: { params: { id: string } }) {
   }
 
   return (
-    <div ref={viewerRef} className="min-h-screen bg-background pt-20 flex flex-row relative">
+    <div
+      ref={viewerRef}
+      className={`min-h-screen bg-background flex flex-row relative ${isFullscreen ? 'pt-0 overflow-auto' : 'pt-20'}`}
+      style={isFullscreen ? { height: '100vh', maxHeight: '100vh', WebkitOverflowScrolling: 'touch' } : {}}
+    >
 
       {/* Sidebar overlay for mobile */}
       {sidebarOpen && (

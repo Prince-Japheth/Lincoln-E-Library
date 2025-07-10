@@ -159,7 +159,7 @@ export default function PublicBookGrid({ books, courses }: PublicBookGridProps) 
           >
             <Card
               key={book.id}
-              className="glassmorphism-card border-0 shadow-md overflow-hidden hover-lift group cursor-pointer flex flex-col h-full"
+              className="w-full sm:w-auto glassmorphism-card border-0 shadow-md overflow-hidden hover-lift group cursor-pointer flex flex-col h-full"
               style={{ animationDelay: `${index * 0.1}s` }}
               tabIndex={0}
               onClick={e => {

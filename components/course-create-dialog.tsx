@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { createClient } from "@/lib/supabase/client"
-import { logAuditEvent } from "@/lib/utils"
+import { logAuditEventWithProfileCheck } from "@/lib/utils"
 
 interface CourseCreateDialogProps {
   open: boolean
@@ -32,13 +32,14 @@ export default function CourseCreateDialog({ open, onOpenChange, onCourseCreated
         setSuccess(true)
         onCourseCreated(data)
         try {
-          await logAuditEvent({
-            userId: null, // TODO: Replace with actual admin user id if available
+          const { data: { user } } = await supabase.auth.getUser();
+          await logAuditEventWithProfileCheck({
+            userId: user?.id,
             action: "add_course",
             tableName: "courses",
             recordId: data.id,
             newValues: data,
-          })
+          });
           console.log("[AUDIT] Course added and audit log updated.")
         } catch (err) {
           console.error("[AUDIT] Failed to log course add:", err)

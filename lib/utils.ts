@@ -43,6 +43,27 @@ export async function logAuditEvent({ userId, action, tableName, recordId, oldVa
   return data;
 }
 
+export async function logAuditEventWithProfileCheck({ userId, action, tableName, recordId, oldValues, newValues, ipAddress, userAgent }) {
+  const supabase = createClient();
+  if (userId) {
+    const { data: profile } = await supabase
+      .from("user_profiles")
+      .select("user_id")
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (!profile) {
+      // Insert minimal profile
+      await supabase.from("user_profiles").insert({
+        user_id: userId,
+        full_name: "Unknown",
+        email: null,
+        role: "admin", // fallback, adjust as needed
+      });
+    }
+  }
+  return logAuditEvent({ userId, action, tableName, recordId, oldValues, newValues, ipAddress, userAgent });
+}
+
 /**
  * Check and increment rate limit for a user and endpoint.
  * Returns true if under limit, false if limit exceeded.

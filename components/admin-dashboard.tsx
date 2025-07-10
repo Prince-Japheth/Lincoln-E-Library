@@ -136,12 +136,13 @@ export default function AdminDashboard({ books: initialBooks, bookRequests, cour
             toast({ title: "Error", description: error.message, variant: "destructive" })
           } else {
             setSelectedBookIds([])
-            await logAuditEvent({
+            await logAuditEventWithProfileCheck({
               userId: users[0]?.id,
               action: "delete_books",
               tableName: "books",
               recordId: selectedBookIds.join(","),
             })
+            if (analyticsRef.current && analyticsRef.current.refresh) analyticsRef.current.refresh()
           }
         } catch (err) {
           toast({ title: "Unexpected Error", description: "An unexpected error occurred.", variant: "destructive" })
@@ -183,12 +184,13 @@ export default function AdminDashboard({ books: initialBooks, bookRequests, cour
             toast({ title: "Error", description: error.message, variant: "destructive" })
           } else {
             setSelectedUserIds([])
-            await logAuditEvent({
+            await logAuditEventWithProfileCheck({
               userId: users[0]?.id,
               action: "delete_users",
               tableName: "user_profiles",
               recordId: selectedUserIds.join(","),
             })
+            if (analyticsRef.current && analyticsRef.current.refresh) analyticsRef.current.refresh()
           }
         } catch (err) {
           toast({ title: "Unexpected Error", description: "An unexpected error occurred.", variant: "destructive" })
@@ -218,13 +220,14 @@ export default function AdminDashboard({ books: initialBooks, bookRequests, cour
             toast({ title: "Error", description: error.message, variant: "destructive" })
           } else {
             setSelectedUserIds([])
-            await logAuditEvent({
+            await logAuditEventWithProfileCheck({
               userId: users[0]?.id,
               action: "change_role",
               tableName: "user_profiles",
               recordId: selectedUserIds.join(","),
               newValues: { role },
             })
+            if (analyticsRef.current && analyticsRef.current.refresh) analyticsRef.current.refresh()
           }
         } catch (err) {
           toast({ title: "Unexpected Error", description: "An unexpected error occurred.", variant: "destructive" })
@@ -261,7 +264,7 @@ export default function AdminDashboard({ books: initialBooks, bookRequests, cour
           })
         }
 
-        await logAuditEvent({
+        await logAuditEventWithProfileCheck({
           userId: users[0]?.id,
           action: "update_request",
           tableName: "book_requests",
@@ -300,13 +303,14 @@ export default function AdminDashboard({ books: initialBooks, bookRequests, cour
             console.error("Error deleting book:", error)
           } else {
             setBooks((prevBooks) => prevBooks.filter((b) => b.id !== bookId))
-            await logAuditEvent({
+            await logAuditEventWithProfileCheck({
               userId: users[0]?.id,
               action: "delete_book",
               tableName: "books",
               recordId: bookId,
               oldValues: oldBook,
             })
+            if (analyticsRef.current && analyticsRef.current.refresh) analyticsRef.current.refresh()
           }
         } catch (error) {
           console.error("Error:", error)
@@ -322,6 +326,7 @@ export default function AdminDashboard({ books: initialBooks, bookRequests, cour
     setBooks((prevBooks) => prevBooks.map((b) => b.id === updatedBook.id ? { ...b, ...updatedBook } : b))
     setShowEditDialog(false)
     setEditingBook(null)
+    if (analyticsRef.current && analyticsRef.current.refresh) analyticsRef.current.refresh()
   }
 
   const pendingRequests = bookRequests.filter((req) => req.status === "pending")
@@ -337,12 +342,14 @@ export default function AdminDashboard({ books: initialBooks, bookRequests, cour
       return [...prev, newCourse];
     });
     toast({ title: "Course created", description: `Course '${newCourse.name}' was added successfully!`, variant: "default" });
+    if (analyticsRef.current && analyticsRef.current.refresh) analyticsRef.current.refresh()
   }
 
   // Add this callback for book creation
   const handleBookAdded = (newBook: any) => {
     setBooks(prev => [newBook, ...prev]);
     toast({ title: "Book added", description: `Book '${newBook.title}' was added successfully!`, variant: "default" });
+    if (analyticsRef.current && analyticsRef.current.refresh) analyticsRef.current.refresh();
   }
 
   const handleEditCourse = (course: any) => {
@@ -376,13 +383,14 @@ export default function AdminDashboard({ books: initialBooks, bookRequests, cour
             toast({ title: "Error", description: error.message, variant: "destructive" })
           } else {
             setAllCourses((prev) => prev.filter((c) => c.id !== courseId))
-            await logAuditEvent({
+            await logAuditEventWithProfileCheck({
               userId: users[0]?.id,
               action: "delete_course",
               tableName: "courses",
               recordId: courseId,
             })
             toast({ title: "Course deleted", description: "Course was deleted successfully!", variant: "default" })
+            if (analyticsRef.current && analyticsRef.current.refresh) analyticsRef.current.refresh()
           }
         } catch (err) {
           toast({ title: "Unexpected Error", description: "An unexpected error occurred.", variant: "destructive" })
@@ -398,6 +406,7 @@ export default function AdminDashboard({ books: initialBooks, bookRequests, cour
     setAllCourses((prev) => prev.map((c) => c.id === updatedCourse.id ? updatedCourse : c))
     setShowEditCourseDialog(false)
     setEditingCourse(null)
+    if (analyticsRef.current && analyticsRef.current.refresh) analyticsRef.current.refresh()
   }
 
   const [showVideoDialog, setShowVideoDialog] = useState(false)
@@ -418,7 +427,7 @@ export default function AdminDashboard({ books: initialBooks, bookRequests, cour
   const handleVideoAdded = async (video: any) => {
     setVideos((prev) => [video, ...prev])
     try {
-      await logAuditEvent({
+      await logAuditEventWithProfileCheck({
         userId: users[0]?.id,
         action: "add_video",
         tableName: "videos",
@@ -426,6 +435,7 @@ export default function AdminDashboard({ books: initialBooks, bookRequests, cour
         newValues: video,
       })
       console.log("[AUDIT] Video added and audit log updated.")
+      if (analyticsRef.current && analyticsRef.current.refresh) analyticsRef.current.refresh()
     } catch (err) {
       console.error("[AUDIT] Failed to log video add:", err)
     }
@@ -446,7 +456,7 @@ export default function AdminDashboard({ books: initialBooks, bookRequests, cour
       setVideos((prev) => prev.filter((v) => v.id !== videoId))
       toast({ title: "Video deleted", variant: "default" })
       try {
-        await logAuditEvent({
+        await logAuditEventWithProfileCheck({
           userId: users[0]?.id,
           action: "delete_video",
           tableName: "videos",
@@ -454,6 +464,7 @@ export default function AdminDashboard({ books: initialBooks, bookRequests, cour
           oldValues: oldVideo,
         })
         console.log("[AUDIT] Video deleted and audit log updated.")
+        if (analyticsRef.current && analyticsRef.current.refresh) analyticsRef.current.refresh()
       } catch (err) {
         console.error("[AUDIT] Failed to log video delete:", err)
       }
@@ -466,7 +477,7 @@ export default function AdminDashboard({ books: initialBooks, bookRequests, cour
     setEditingVideo(null)
     toast({ title: "Video updated", variant: "default" })
     try {
-      await logAuditEvent({
+      await logAuditEventWithProfileCheck({
         userId: users[0]?.id,
         action: "edit_video",
         tableName: "videos",
@@ -474,6 +485,7 @@ export default function AdminDashboard({ books: initialBooks, bookRequests, cour
         newValues: updatedVideo,
       })
       console.log("[AUDIT] Video edited and audit log updated.")
+      if (analyticsRef.current && analyticsRef.current.refresh) analyticsRef.current.refresh()
     } catch (err) {
       console.error("[AUDIT] Failed to log video edit:", err)
     }
@@ -518,7 +530,7 @@ export default function AdminDashboard({ books: initialBooks, bookRequests, cour
       } else {
         setUserActionSuccess("User deleted successfully.")
         setUsersState((prev: any[]) => prev.filter(u => u.user_id !== user.user_id))
-        await logAuditEvent({
+        await logAuditEventWithProfileCheck({
           userId: users[0]?.id,
           action: "delete_user",
           tableName: "user_profiles",
@@ -578,8 +590,8 @@ export default function AdminDashboard({ books: initialBooks, bookRequests, cour
         const oldUser = usersState.find(u => u.user_id === user.user_id)
         setUsersState((prev: any[]) => prev.map(u => u.user_id === user.user_id ? { ...u, role: newRole } : u))
         try {
-          await logAuditEvent({
-            userId: users[0]?.user_id,
+          await logAuditEventWithProfileCheck({
+            userId: users[0]?.id,
             action: "edit_user",
             tableName: "user_profiles",
             recordId: user.user_id,
@@ -587,10 +599,10 @@ export default function AdminDashboard({ books: initialBooks, bookRequests, cour
             newValues: { ...user, role: newRole },
           })
           console.log("[AUDIT] User edited and audit log updated.")
+          if (analyticsRef.current && analyticsRef.current.refresh) analyticsRef.current.refresh()
         } catch (err) {
           console.error("[AUDIT] Failed to log user edit:", err)
         }
-        if (analyticsRef.current && analyticsRef.current.refresh) analyticsRef.current.refresh()
         setTimeout(() => {
           setUserActionSuccess("")
           setShowEditUserDialog(false)
@@ -1170,6 +1182,7 @@ function EditVideoDialog({ open, onOpenChange, video, courses, onVideoUpdated, t
       toast({ title: "Error", description: error.message, variant: "destructive" })
     } else {
       onVideoUpdated(data)
+      if (analyticsRef.current && analyticsRef.current.refresh) analyticsRef.current.refresh()
     }
   }
 

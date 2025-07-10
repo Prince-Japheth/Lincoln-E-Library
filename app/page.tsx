@@ -96,8 +96,9 @@ export default async function HomePage() {
 
             {/* Quick Access Cards */}
             <div className="mb-12">
-              {/* Complete Library card always on its own row */}
-              <div className="mb-6">
+              {/* All three cards in a row on large screens, stacked on mobile/tablet */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {/* Complete Library Card */}
                 <Card className="glassmorphism-card border-0 hover-lift">
                   <CardHeader className="text-center pb-2">
                     <AnimatedBook />
@@ -115,9 +116,7 @@ export default async function HomePage() {
                     </Button>
                   </CardContent>
                 </Card>
-              </div>
-              {/* Private Books and Course-Based Learning side by side on md+, stacked on mobile */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Private Books Card */}
                 <Card className="glassmorphism-card border-0 hover-lift">
                   <CardHeader className="text-center pb-2">
                     <AnimatedLock />
@@ -134,6 +133,7 @@ export default async function HomePage() {
                     </Button>
                   </CardContent>
                 </Card>
+                {/* Course-Based Learning Card */}
                 <Card className="glassmorphism-card border-0 hover-lift">
                   <CardHeader className="text-center pb-2">
                     <AnimatedCap />

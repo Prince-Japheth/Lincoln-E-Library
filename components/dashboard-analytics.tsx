@@ -683,19 +683,19 @@ const DashboardAnalytics = forwardRef(function DashboardAnalytics({ userRole }: 
                     return (
                       <div key={activity.id} className="flex items-center gap-3 p-3 bg-muted rounded-lg">
                         <div className="w-2 h-2 bg-primary rounded-full"></div>
-                        <div className="flex-1">
+                  <div className="flex-1">
                           <p className="text-sm font-medium text-foreground">
                             {actor} {activity.action.replace(/_/g, ' ')} {target && `→ ${target}`}
                           </p>
                           {changeSummary && <p className="text-xs text-muted-foreground">{changeSummary}</p>}
-                          <p className="text-xs text-muted-foreground">
-                            {new Date(activity.created_at).toLocaleDateString()}
-                          </p>
-                        </div>
-                        <Badge variant="outline" className="text-xs">
-                          {activity.table_name}
-                        </Badge>
-                      </div>
+                    <p className="text-xs text-muted-foreground">
+                      {new Date(activity.created_at).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <Badge variant="outline" className="text-xs">
+                    {activity.table_name}
+                  </Badge>
+                </div>
                     )
                   })
                 ) : (

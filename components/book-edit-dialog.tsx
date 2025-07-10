@@ -20,7 +20,7 @@ import { Edit, Upload, FileText, Image, X, Check } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { uploadFile } from "@/lib/supabase/storage"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
-import { logAuditEvent } from "@/lib/utils"
+import { logAuditEvent, logAuditEventWithProfileCheck } from "@/lib/utils"
 
 interface BookEditDialogProps {
   open: boolean
@@ -216,32 +216,25 @@ export default function BookEditDialog({ open, onOpenChange, book, courses, onBo
             cover_image_url: newCoverImageUrl,
             file_url: newFileUrl,
           })
-        try {
-          await logAuditEvent({
-            userId: null, // TODO: Replace with actual admin user id if available
-            action: "edit_book",
-            tableName: "books",
-            recordId: book.id,
-            newValues: {
-              ...book,
-              title,
-              author,
-              genre,
-              description,
-              course_id: courseId === "none" ? null : courseId,
-              is_public: isPublicValue,
-              cover_image_url: newCoverImageUrl,
-              file_url: newFileUrl,
-            },
-          })
-          console.log("[AUDIT] Book edited and audit log updated.")
-        } catch (err) {
-          console.error("[AUDIT] Failed to log book edit:", err)
-        }
-        setTimeout(() => {
-          setSuccess(false)
-          onOpenChange(false)
-        }, 2000)
+        const { data: { user } } = await supabase.auth.getUser();
+        await logAuditEventWithProfileCheck({
+          userId: user?.id,
+          action: "edit_book",
+          tableName: "books",
+          recordId: book.id,
+          newValues: {
+            ...book,
+            title,
+            author,
+            genre,
+            description,
+            course_id: courseId === "none" ? null : courseId,
+            is_public: isPublicValue,
+            cover_image_url: newCoverImageUrl,
+            file_url: newFileUrl,
+          },
+        })
+        console.log("[AUDIT] Book edited and audit log updated.")
       }
     } catch (err) {
       setError("An unexpected error occurred")

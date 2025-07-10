@@ -21,7 +21,8 @@ import { Upload, FileText, Image, X, Check } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { uploadFile } from "@/lib/supabase/storage"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
-import { logAuditEvent } from "@/lib/utils"
+import { logAuditEvent, logAuditEventWithProfileCheck } from "@/lib/utils"
+import { useTheme } from "next-themes"
 
 interface BookUploadDialogProps {
   open: boolean
@@ -47,10 +48,11 @@ export default function BookUploadDialog({ open, onOpenChange, courses, onBookAd
   const [uploadProgress, setUploadProgress] = useState(0)
   const [courseSearch, setCourseSearch] = useState("")
   const [genreSuggestions, setGenreSuggestions] = useState<string[]>([]);
-  
+
   const coverImageRef = useRef<HTMLInputElement>(null)
   const bookFileRef = useRef<HTMLInputElement>(null)
   const supabase = createClient()
+  const { resolvedTheme } = useTheme();
 
   const genres = [
     "Science Fiction", "Fantasy", "Mystery", "Romance", "Thriller", "Non-Fiction", "Biography", "History", "Children", "Young Adult", "Self-Help", "Education", "Science", "Math", "Technology", "Art", "Comics", "Graphic Novel", "Horror", "Adventure", "Drama", "Poetry", "Religion", "Health", "Business", "Philosophy", "Travel", "Cooking", "Sports", "Music", "Classic", "Short Stories", "Memoir", "Politics", "Psychology", "Reference", "True Crime", "Other"
@@ -87,84 +89,77 @@ export default function BookUploadDialog({ open, onOpenChange, courses, onBookAd
     return true
   }
 
+  // Refactor handleFileUpload to return { fileUrl, coverImageUrl }
   const handleFileUpload = async () => {
-    if (!validateFiles()) return
-
-    setUploadProgress(0)
-    
+    if (!validateFiles()) return { fileUrl, coverImageUrl };
+    setUploadProgress(0);
+    let bookUrlToUse = fileUrl;
+    let coverUrlToUse = coverImageUrl;
     try {
-      // Upload book file if provided
-      let bookUrlToUse = fileUrl;
       if (bookFile) {
-        const bookFileName = `${Date.now()}-${bookFile!.name}`
-        const bookPath = `books/${bookFileName}`
-        
+        const bookFileName = `${Date.now()}-${bookFile.name}`;
+        const bookPath = `books/${bookFileName}`;
         const { url: bookUrl, error: bookError } = await uploadFile(
           bookFile,
           "books",
           bookPath
-        )
-
+        );
         if (bookError) {
-          setError(`Failed to upload book file: ${bookError.message}`)
-          return
+          setError(`Failed to upload book file: ${bookError.message}`);
+          return { fileUrl, coverImageUrl };
         }
         bookUrlToUse = bookUrl;
       }
-
-      setUploadProgress(50)
-
-      // Upload cover image if provided
-      let coverUrlToUse = coverImageUrl;
+      setUploadProgress(50);
       if (coverImageFile) {
-        const coverFileName = `${Date.now()}-${coverImageFile.name}`
-        const coverPath = `covers/${coverFileName}`
-        
+        const coverFileName = `${Date.now()}-${coverImageFile.name}`;
+        const coverPath = `covers/${coverFileName}`;
         const { url: coverUrl, error: coverError } = await uploadFile(
           coverImageFile,
           "covers",
           coverPath
-        )
-
+        );
         if (coverError) {
-          setError(`Failed to upload cover image: ${coverError.message}`)
-          return
+          setError(`Failed to upload cover image: ${coverError.message}`);
+          return { fileUrl: bookUrlToUse, coverImageUrl };
         }
         coverUrlToUse = coverUrl;
       }
-
-      setUploadProgress(100)
-      return true
+      setUploadProgress(100);
+      return { fileUrl: bookUrlToUse, coverImageUrl: coverUrlToUse };
     } catch (error) {
-      setError("File upload failed")
-      return false
+      setError("File upload failed");
+      return { fileUrl: bookUrlToUse, coverImageUrl: coverUrlToUse };
     }
-  }
+  };
 
+  // In handleSubmit, use the returned URLs from handleFileUpload
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError("")
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+    setUploadProgress(1); // Show progress bar immediately
 
     if (!title || !author || !genre) {
-      setError("Please fill in all required fields")
-      setLoading(false)
-      return
+      setError("Please fill in all required fields");
+      setLoading(false);
+      return;
     }
 
     // Upload files first
-    const uploadSuccess = await handleFileUpload()
-    if (!uploadSuccess) {
-      setLoading(false)
-      return
+    const uploadResult = await handleFileUpload();
+    if (!uploadResult) {
+      setLoading(false);
+      return;
     }
+    const { fileUrl: newFileUrl, coverImageUrl: newCoverImageUrl } = uploadResult;
 
     // Convert status to is_public value
-    let isPublicValue: boolean | null = null
+    let isPublicValue: boolean | null = null;
     if (bookStatus === "public") {
-      isPublicValue = true
+      isPublicValue = true;
     } else if (bookStatus === "private") {
-      isPublicValue = false
+      isPublicValue = false;
     }
     // For "draft", isPublicValue remains null
 
@@ -177,40 +172,35 @@ export default function BookUploadDialog({ open, onOpenChange, courses, onBookAd
           description,
           course_id: courseId === "none" ? null : courseId,
           is_public: isPublicValue,
-          cover_image_url: coverImageUrl || "/placeholder.svg?height=400&width=300",
-          file_url: fileUrl || (bookFile ? `https://storage.googleapis.com/book-library-storage/${bookFile.name}` : null),
+          cover_image_url: newCoverImageUrl || "/placeholder.svg?height=400&width=300",
+          file_url: newFileUrl || null,
         },
-      ]).select().single()
+      ]).select().single();
 
       if (error) {
-        setError(error.message)
+        setError(error.message);
       } else {
-        setSuccess(true)
-        if (onBookAdded) onBookAdded(data)
-        try {
-          await logAuditEvent({
-            userId: null, // TODO: Replace with actual admin user id if available
-            action: "add_book",
-            tableName: "books",
-            recordId: data.id,
-            newValues: data,
-          })
-          console.log("[AUDIT] Book added and audit log updated.")
-        } catch (err) {
-          console.error("[AUDIT] Failed to log book add:", err)
-        }
-        resetForm()
-        setTimeout(() => {
-          setSuccess(false)
-          onOpenChange(false)
-        }, 2000)
+        setSuccess(true);
+        if (onBookAdded) onBookAdded(data);
+        const { data: { user } } = await supabase.auth.getUser();
+        await logAuditEventWithProfileCheck({
+          userId: user?.id,
+          action: "add_book",
+          tableName: "books",
+          recordId: data.id,
+          oldValues: null,
+          newValues: data,
+          ipAddress: null,
+          userAgent: null,
+        });
+        console.log("[AUDIT] Book added and audit log updated.");
       }
     } catch (err) {
-      setError("An unexpected error occurred")
+      setError("An unexpected error occurred");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const resetForm = () => {
     setTitle("")
@@ -257,133 +247,136 @@ export default function BookUploadDialog({ open, onOpenChange, courses, onBookAd
           </DialogDescription>
         </DialogHeader>
 
-        {success && (
-          <Alert className="mb-4 border-green-600 bg-green-50">
-            <Check className="h-5 w-5 text-green-600" />
-            <AlertDescription>Book uploaded successfully!</AlertDescription>
-          </Alert>
-        )}
-        {error && (
-          <Alert className="mb-4 border-red-600 bg-red-50">
-            <X className="h-5 w-5 text-red-600" />
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
+        {/* Floating success/error alerts */}
+        <div className="fixed top-6 left-1/2 z-50 transform -translate-x-1/2 w-full max-w-md pointer-events-none">
+          {success && (
+            <Alert className={`border-green-600 ${resolvedTheme === 'dark' ? 'bg-green-900/30' : 'bg-green-50'} shadow-lg pointer-events-auto`}>
+              <Check className="h-5 w-5 text-green-600" />
+              <AlertDescription>Book uploaded successfully!</AlertDescription>
+            </Alert>
+          )}
+          {error && (
+            <Alert className={`mt-2 border-red-600 ${resolvedTheme === 'dark' ? 'bg-red-900/30' : 'bg-red-50'} shadow-lg pointer-events-auto`}>
+              <X className="h-5 w-5 text-red-600" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+        </div>
 
         <form onSubmit={handleSubmit}>
-            <div className="grid gap-4 py-4">
+          <div className="grid gap-4 py-4">
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="title">Title *</Label>
-                  <Input
-                    id="title"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    placeholder="Book title"
-                    aria-invalid={!title}
-                    className="w-full"
-                  />
-                </div>
-
-                <div className="grid gap-2">
-                  <Label htmlFor="author">Author *</Label>
-                  <Input
-                    id="author"
-                    value={author}
-                    onChange={(e) => setAuthor(e.target.value)}
-                    placeholder="Author name"
-                    aria-invalid={!author}
-                    className="w-full"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="genre">Genre *</Label>
-                  <Input
-                    id="genre"
-                    value={genre}
-                    onChange={e => {
-                      setGenre(e.target.value);
-                      // Filter suggestions as user types
-                      setGenreSuggestions(
-                        genres.filter(g => g.toLowerCase().includes(e.target.value.toLowerCase()) && g !== e.target.value)
-                      );
-                    }}
-                    placeholder="Genre"
-                    aria-invalid={!genre}
-                    className="w-full"
-                    autoComplete="off"
-                  />
-                  {genre && genreSuggestions.length > 0 && (
-                    <div className="absolute z-10 bg-card border border-border rounded shadow mt-1 w-full max-h-40 overflow-auto">
-                      {genreSuggestions.map((g) => (
-                        <div
-                          key={g}
-                          className="px-4 py-2 cursor-pointer hover:bg-accent"
-                          onClick={() => { setGenre(g); setGenreSuggestions([]); }}
-                        >
-                          {g}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                <div className="grid gap-2">
-                  <Label htmlFor="course">Course</Label>
-                  <Select value={courseId} onValueChange={setCourseId}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a course (optional)" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <div className="p-2">
-                        <Input
-                          type="text"
-                          placeholder="Search courses..."
-                          value={courseSearch}
-                          onChange={e => setCourseSearch(e.target.value)}
-                          className="mb-2 w-full"
-                        />
-                      </div>
-                      <SelectItem value="none">No course</SelectItem>
-                      {filteredCourses.map((course) => (
-                        <SelectItem key={course.id} value={course.id}>{course.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
+            <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Brief description of the book"
-                  rows={3}
+                <Label htmlFor="title">Title *</Label>
+                <Input
+                  id="title"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="Book title"
+                  aria-invalid={!title}
+                  className="w-full"
                 />
               </div>
 
               <div className="grid gap-2">
-                <Label htmlFor="bookStatus">Book Status</Label>
-                <Select value={bookStatus} onValueChange={setBookStatus}>
+                <Label htmlFor="author">Author *</Label>
+                <Input
+                  id="author"
+                  value={author}
+                  onChange={(e) => setAuthor(e.target.value)}
+                  placeholder="Author name"
+                  aria-invalid={!author}
+                  className="w-full"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="genre">Genre *</Label>
+                <Input
+                  id="genre"
+                  value={genre}
+                  onChange={e => {
+                    setGenre(e.target.value);
+                    // Filter suggestions as user types
+                    setGenreSuggestions(
+                      genres.filter(g => g.toLowerCase().includes(e.target.value.toLowerCase()) && g !== e.target.value)
+                    );
+                  }}
+                  placeholder="Genre"
+                  aria-invalid={!genre}
+                  className="w-full"
+                  autoComplete="off"
+                />
+                {genre && genreSuggestions.length > 0 && (
+                  <div className="absolute z-10 bg-card border border-border rounded shadow mt-1 w-full max-h-40 overflow-auto">
+                    {genreSuggestions.map((g) => (
+                      <div
+                        key={g}
+                        className="px-4 py-2 cursor-pointer hover:bg-accent"
+                        onClick={() => { setGenre(g); setGenreSuggestions([]); }}
+                      >
+                        {g}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="course">Course</Label>
+                <Select value={courseId} onValueChange={setCourseId}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select book status" />
+                    <SelectValue placeholder="Select a course (optional)" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="draft">Draft (Not published)</SelectItem>
-                    <SelectItem value="private">Private (Only logged in users can see)</SelectItem>
-                    <SelectItem value="public">Public (Everyone can see)</SelectItem>
+                    <div className="p-2">
+                      <Input
+                        type="text"
+                        placeholder="Search courses..."
+                        value={courseSearch}
+                        onChange={e => setCourseSearch(e.target.value)}
+                        className="mb-2 w-full"
+                      />
+                    </div>
+                    <SelectItem value="none">No course</SelectItem>
+                    {filteredCourses.map((course) => (
+                      <SelectItem key={course.id} value={course.id}>{course.name}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
+            </div>
 
-              {/* File Upload Section */}
-              <div className="space-y-4">
+            <div className="grid gap-2">
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Brief description of the book"
+                rows={3}
+              />
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="bookStatus">Book Status</Label>
+              <Select value={bookStatus} onValueChange={setBookStatus}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select book status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="draft">Draft (Not published)</SelectItem>
+                  <SelectItem value="private">Private (Only logged in users can see)</SelectItem>
+                  <SelectItem value="public">Public (Everyone can see)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* File Upload Section */}
+            <div className="space-y-4">
               <div className="grid gap-2">
                 <Label>Book File (PDF) *</Label>
                 <Tabs defaultValue="upload" className="w-full">
@@ -488,26 +481,26 @@ export default function BookUploadDialog({ open, onOpenChange, courses, onBookAd
                 </Tabs>
               </div>
 
-                {uploadProgress > 0 && uploadProgress < 100 && (
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div 
-                      className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                      style={{ width: `${uploadProgress}%` }}
-                    ></div>
-                  </div>
-                )}
-              </div>
+              {uploadProgress > 0 && uploadProgress < 100 && (
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div
+                    className="bg-red-600 h-2 rounded-full transition-all duration-300"
+                    style={{ width: `${uploadProgress}%` }}
+                  ></div>
+                </div>
+              )}
             </div>
+          </div>
 
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={handleClose}>
-                Cancel
-              </Button>
-              <Button type="submit" disabled={loading}>
-                {loading ? "Uploading..." : "Add Book"}
-              </Button>
-            </DialogFooter>
-          </form>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={handleClose}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={loading}>
+              {loading ? "Uploading..." : "Add Book"}
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   )
