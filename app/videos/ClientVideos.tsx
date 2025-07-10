@@ -35,10 +35,10 @@ export default function ClientVideos({ videos, courses }: { videos: any[], cours
         <div className="flex flex-row gap-4 mb-8 w-full justify-center items-center">
           <div className="flex-1 min-w-[220px] max-w-md">
             <Input
-              type="text"
-              placeholder="Search videos..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
+            type="text"
+            placeholder="Search videos..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
               className="w-full h-12 bg-card text-card-foreground border border-border text-base"
             />
           </div>

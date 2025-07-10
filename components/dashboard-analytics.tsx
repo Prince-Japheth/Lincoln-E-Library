@@ -15,10 +15,18 @@ import {
   Calendar,
   BarChart3,
   PieChart,
-  Activity
+  Activity,
+  Info,
+  HelpCircle
 } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { Skeleton } from "@/components/ui/skeleton"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 
 interface AnalyticsData {
   totalBooks: number
@@ -301,178 +309,345 @@ export default function DashboardAnalytics({ userRole }: DashboardAnalyticsProps
   if (!analytics) return null
 
   return (
-    <div className="space-y-6">
-      {/* Time Range Selector */}
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">Analytics Dashboard</h2>
-        <Select value={timeRange} onValueChange={setTimeRange}>
-          <SelectTrigger className="w-32">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="7d">Last 7 days</SelectItem>
-            <SelectItem value="30d">Last 30 days</SelectItem>
-            <SelectItem value="90d">Last 90 days</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      {/* Key Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Books</CardTitle>
-            <BookOpen className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{analytics.totalBooks}</div>
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <Badge variant="secondary">{analytics.publicBooks} public</Badge>
-              <Badge variant="outline">{analytics.privateBooks} private</Badge>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{analytics.totalUsers}</div>
-            <p className="text-xs text-muted-foreground">
-              Registered users
+    <TooltipProvider>
+      <div className="space-y-6">
+        {/* Dashboard Header with Description */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold">Analytics Dashboard</h2>
+            <p className="text-muted-foreground text-sm mt-1">
+              Monitor library usage, user engagement, and reading patterns across all users
             </p>
-          </CardContent>
-        </Card>
+          </div>
+          <Select value={timeRange} onValueChange={setTimeRange}>
+            <SelectTrigger className="w-32">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="7d">Last 7 days</SelectItem>
+              <SelectItem value="30d">Last 30 days</SelectItem>
+              <SelectItem value="90d">Last 90 days</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Book Requests</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
+        {/* Key Metrics with Explanations */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <div className="flex items-center gap-2">
+                <CardTitle className="text-sm font-medium">Total Books</CardTitle>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <HelpCircle className="h-3 w-3 text-muted-foreground" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Total number of books in the library</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+              <BookOpen className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{analytics.totalBooks}</div>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <Badge variant="secondary">{analytics.publicBooks} public</Badge>
+                <Badge variant="outline">{analytics.privateBooks} private</Badge>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Public books are visible to all users, private books require admin approval
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <div className="flex items-center gap-2">
+                <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <HelpCircle className="h-3 w-3 text-muted-foreground" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Number of registered users in the system</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{analytics.totalUsers}</div>
+              <p className="text-xs text-muted-foreground">
+                Registered users
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Includes students, teachers, and administrators
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <div className="flex items-center gap-2">
+                <CardTitle className="text-sm font-medium">Book Requests</CardTitle>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <HelpCircle className="h-3 w-3 text-muted-foreground" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Books requested by users that need admin approval</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+              <Clock className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{analytics.totalRequests}</div>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <Badge variant="destructive">{analytics.pendingRequests} pending</Badge>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Pending requests require your review and approval
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <div className="flex items-center gap-2">
+                <CardTitle className="text-sm font-medium">Reading Activity</CardTitle>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <HelpCircle className="h-3 w-3 text-muted-foreground" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Total reading sessions across all users</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+              <Activity className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{analytics.readingStats.totalReads}</div>
+              <p className="text-xs text-muted-foreground">
+                {analytics.readingStats.averageProgress}% avg progress
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Each time a user opens a book to read
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Detailed Analytics with Better Explanations */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Popular Books */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="h-4 w-4" />
+                Most Recently Read Books
+                <Tooltip>
+                  <TooltipTrigger>
+                    <HelpCircle className="h-3 w-3 text-muted-foreground" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Books that have been opened for reading most recently</p>
+                  </TooltipContent>
+                </Tooltip>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {analytics.popularBooks.length > 0 ? (
+                  analytics.popularBooks.map((item, index) => (
+                    <div key={item.book_id} className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-muted rounded flex items-center justify-center text-sm font-medium text-foreground">
+                        {index + 1}
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-medium text-sm">{item.books?.title}</p>
+                        <p className="text-xs text-muted-foreground">{item.books?.author}</p>
+                      </div>
+                      <Badge variant="secondary">Recently read</Badge>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-muted-foreground text-center py-4">
+                    No reading activity yet
+                  </p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Reading Statistics */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BarChart3 className="h-4 w-4" />
+                Reading Statistics
+                <Tooltip>
+                  <TooltipTrigger>
+                    <HelpCircle className="h-3 w-3 text-muted-foreground" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Aggregated reading data across all users</p>
+                  </TooltipContent>
+                </Tooltip>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm">Most Popular Genre</span>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <HelpCircle className="h-3 w-3 text-muted-foreground" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Genre with the most reading sessions</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                  <Badge variant="outline">{analytics.readingStats.mostReadGenre}</Badge>
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm">Average Reading Progress</span>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <HelpCircle className="h-3 w-3 text-muted-foreground" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Average completion percentage across all reading sessions</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-16 bg-gray-200 rounded-full h-2">
+                      <div 
+                        className="bg-[#fe0002] h-2 rounded-full"
+                        style={{ width: `${analytics.readingStats.averageProgress}%` }}
+                      ></div>
+                    </div>
+                    <span className="text-sm font-medium">{analytics.readingStats.averageProgress}%</span>
+                  </div>
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm">Total Reading Sessions</span>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <HelpCircle className="h-3 w-3 text-muted-foreground" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Number of times users have opened books to read</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                  <span className="text-sm font-medium">{analytics.readingStats.totalReads}</span>
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm">Total Reading Time</span>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <HelpCircle className="h-3 w-3 text-muted-foreground" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Combined reading time across all users</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                  <span className="text-sm font-medium">{Math.round(analytics.readingStats.totalReadingTimeMinutes / 60)} hours</span>
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm">Average Session Time</span>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <HelpCircle className="h-3 w-3 text-muted-foreground" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Average time spent per reading session</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                  <span className="text-sm font-medium">{analytics.readingStats.averageReadingTimeMinutes} minutes</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Recent Activity */}
+        {userRole === "admin" && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Calendar className="h-4 w-4" />
+                Recent System Activity
+                <Tooltip>
+                  <TooltipTrigger>
+                    <HelpCircle className="h-3 w-3 text-muted-foreground" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Recent actions performed in the system</p>
+                  </TooltipContent>
+                </Tooltip>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {analytics.recentActivity.length > 0 ? (
+                  analytics.recentActivity.map((activity) => (
+                    <div key={activity.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium">{activity.action}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(activity.created_at).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <Badge variant="outline" className="text-xs">
+                        {activity.table_name}
+                      </Badge>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-muted-foreground text-center py-4">
+                    No recent activity
+                  </p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Data Interpretation Guide */}
+        <Card className="bg-blue-50 border-blue-200 dark:bg-blue-950 dark:border-blue-700">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-blue-800 dark:text-blue-200">
+              <Info className="h-4 w-4" />
+              Understanding Your Analytics
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{analytics.totalRequests}</div>
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <Badge variant="destructive">{analytics.pendingRequests} pending</Badge>
+            <div className="text-sm text-blue-700 dark:text-blue-200 space-y-2">
+              <p><strong>Low numbers?</strong> This is normal for a new system or during initial setup. Data builds up as users engage with the library.</p>
+              <p><strong>Reading sessions:</strong> Each time a user opens a book counts as one session, regardless of how long they read.</p>
+              <p><strong>Progress tracking:</strong> Shows how far users typically get through books, helping identify engagement patterns.</p>
+              <p><strong>Time tracking:</strong> Actual time spent reading, not just page views, giving you real engagement metrics.</p>
             </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Reading Activity</CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{analytics.readingStats.totalReads}</div>
-            <p className="text-xs text-muted-foreground">
-              {analytics.readingStats.averageProgress}% avg progress
-            </p>
           </CardContent>
         </Card>
       </div>
-
-      {/* Detailed Analytics */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Popular Books */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-4 w-4" />
-              Most Read Books
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {analytics.popularBooks.map((item, index) => (
-                <div key={item.book_id} className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-muted rounded flex items-center justify-center text-sm font-medium text-foreground">
-                    {index + 1}
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-medium text-sm">{item.books?.title}</p>
-                    <p className="text-xs text-muted-foreground">{item.books?.author}</p>
-                  </div>
-                  <Badge variant="secondary">Recently read</Badge>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Reading Statistics */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <BarChart3 className="h-4 w-4" />
-              Reading Statistics
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Most Popular Genre</span>
-                <Badge variant="outline">{analytics.readingStats.mostReadGenre}</Badge>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Average Reading Progress</span>
-                <div className="flex items-center gap-2">
-                  <div className="w-16 bg-gray-200 rounded-full h-2">
-                    <div 
-                      className="bg-[#fe0002] h-2 rounded-full"
-                      style={{ width: `${analytics.readingStats.averageProgress}%` }}
-                    ></div>
-                  </div>
-                  <span className="text-sm font-medium">{analytics.readingStats.averageProgress}%</span>
-                </div>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Total Reading Sessions</span>
-                <span className="text-sm font-medium">{analytics.readingStats.totalReads}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Total Reading Time</span>
-                <span className="text-sm font-medium">{Math.round(analytics.readingStats.totalReadingTimeMinutes / 60)} hours</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Average Session Time</span>
-                <span className="text-sm font-medium">{analytics.readingStats.averageReadingTimeMinutes} minutes</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Recent Activity */}
-      {userRole === "admin" && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Calendar className="h-4 w-4" />
-              Recent Activity
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {analytics.recentActivity.map((activity) => (
-                <div key={activity.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">{activity.action}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {new Date(activity.created_at).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <Badge variant="outline" className="text-xs">
-                    {activity.table_name}
-                  </Badge>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-    </div>
+    </TooltipProvider>
   )
 } 

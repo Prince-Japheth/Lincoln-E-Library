@@ -130,7 +130,7 @@ export default function AITutorPage() {
     const bookTitle = urlParams.get('book')
     const bookAuthor = urlParams.get('author')
     const bookGenre = urlParams.get('genre')
-
+    
     if (bookTitle || bookAuthor || bookGenre) {
       setBookContext({
         title: bookTitle || undefined,
@@ -406,7 +406,7 @@ export default function AITutorPage() {
   const handleSuggestionClick = async (suggestion: string) => {
     console.log("Suggestion clicked:", suggestion)
     setInput(suggestion)
-
+    
     // Create user message
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -442,7 +442,7 @@ export default function AITutorPage() {
 
       const data = await response.json()
       console.log("API response data:", data)
-
+      
       // Create assistant message
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -501,7 +501,7 @@ export default function AITutorPage() {
       if (currentChatId === chatId) {
         createNewChat()
       }
-
+      
       // Reset confirmation state
       setShowDeleteConfirm(false)
       setChatToDelete(null)
@@ -514,7 +514,7 @@ export default function AITutorPage() {
   }
 
   // Filter chats based on search
-  const filteredChats = chats.filter(chat =>
+  const filteredChats = chats.filter(chat => 
     chat.title.toLowerCase().includes(chatSearch.toLowerCase())
   )
 
@@ -623,76 +623,76 @@ export default function AITutorPage() {
                     createNewChat();
                     if (typeof window !== 'undefined' && window.innerWidth < 768) setSidebarOpen(false);
                   }}
-                  className="w-full mb-6 morph-button bg-gradient-to-r from-[#fe0002] to-[#ff4444] hover:from-[#fe0002]/90 hover:to-[#ff4444]/90 hover:scale-105 transition-all duration-300"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  New Chat
-                </Button>
+              className="w-full mb-6 morph-button bg-gradient-to-r from-[#fe0002] to-[#ff4444] hover:from-[#fe0002]/90 hover:to-[#ff4444]/90 hover:scale-105 transition-all duration-300"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              New Chat
+            </Button>
 
-                <div className="flex-1 overflow-hidden">
-                  <h3 className="text-sm font-semibold text-muted-foreground mb-4 uppercase tracking-wide">Past Chats</h3>
-
-                  {/* Search input */}
+            <div className="flex-1 overflow-hidden">
+              <h3 className="text-sm font-semibold text-muted-foreground mb-4 uppercase tracking-wide">Past Chats</h3>
+              
+              {/* Search input */}
                   <div className="relative mb-4">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
-                    <Input
-                      placeholder="Search chats..."
-                      value={chatSearch}
-                      onChange={(e) => setChatSearch(e.target.value)}
+                <Input
+                  placeholder="Search chats..."
+                  value={chatSearch}
+                  onChange={(e) => setChatSearch(e.target.value)}
                       className="h-10 pl-10 pr-3 rounded-2xl glassmorphism-card border border-border focus:border-[#fe0002] shadow-sm text-sm bg-background"
-                    />
-                  </div>
+                />
+              </div>
 
-                  {filteredChats.length === 0 ? (
-                    <div className="text-center py-8">
-                      <EmptyChatsIllustration />
-                      <p className="text-muted-foreground text-sm">
-                        {chatSearch ? "No chats match your search" : "No chat history yet"}
-                      </p>
-                      <p className="text-muted-foreground text-xs mt-1">
-                        {chatSearch ? "Try a different search term" : "Start a conversation to see your chats here"}
-                      </p>
-                    </div>
-                  ) : (
-                    <ScrollArea className="flex-1">
-                      <div className="space-y-2">
-                        {filteredChats.map((chat) => (
-                          <div
-                            key={chat.id}
-                            className={`group relative p-3 rounded-xl cursor-pointer transition-all duration-200 ${currentChatId === chat.id ? "bg-[#fe0002]/10 border border-[#fe0002]/20" : "hover:bg-muted/50"
-                              }`}
-                            onClick={() => loadChat(chat.id)}
-                          >
-                            <div className="flex items-start justify-between">
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium truncate">{chat.title}</p>
-                                <p className="text-xs text-muted-foreground">{chat.lastUpdated.toLocaleDateString()}</p>
-                              </div>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="ml-2 p-1 h-auto"
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  setShowDeleteConfirm(true)
-                                  setChatToDelete(chat.id)
-                                }}
-                                title="Delete chat"
-                              >
-                                <Trash2 className="h-3 w-3" />
-                              </Button>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </ScrollArea>
-                  )}
+              {filteredChats.length === 0 ? (
+                <div className="text-center py-8">
+                  <EmptyChatsIllustration />
+                  <p className="text-muted-foreground text-sm">
+                    {chatSearch ? "No chats match your search" : "No chat history yet"}
+                  </p>
+                  <p className="text-muted-foreground text-xs mt-1">
+                    {chatSearch ? "Try a different search term" : "Start a conversation to see your chats here"}
+                  </p>
                 </div>
+              ) : (
+                <ScrollArea className="flex-1">
+                  <div className="space-y-2">
+                    {filteredChats.map((chat) => (
+                      <div
+                        key={chat.id}
+                        className={`group relative p-3 rounded-xl cursor-pointer transition-all duration-200 ${currentChatId === chat.id ? "bg-[#fe0002]/10 border border-[#fe0002]/20" : "hover:bg-muted/50"
+                          }`}
+                        onClick={() => loadChat(chat.id)}
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium truncate">{chat.title}</p>
+                            <p className="text-xs text-muted-foreground">{chat.lastUpdated.toLocaleDateString()}</p>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="ml-2 p-1 h-auto"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              setShowDeleteConfirm(true)
+                              setChatToDelete(chat.id)
+                            }}
+                            title="Delete chat"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </ScrollArea>
+              )}
+            </div>
                 <Button variant="ghost" size="sm" className="mt-4" onClick={() => setSidebarOpen(false)}>
                   Close
                 </Button>
-              </div>
-            </div>
+          </div>
+        </div>
           </div>
         )}
         {/* Main Chat Area */}
@@ -765,7 +765,7 @@ export default function AITutorPage() {
                         className={`max-w-[80%] rounded-2xl px-6 py-4 ${message.role === "user"
                             ? "bg-gradient-to-r from-[#fe0002] to-[#ff4444] text-white"
                             : "glassmorphism-card"
-                          }`}
+                        }`}
                       >
                         {message.role === "assistant" ? (
                           <div className="prose max-w-none dark:prose-invert">
@@ -776,7 +776,7 @@ export default function AITutorPage() {
                         )}
                       </div>
                     </div>
-
+                    
                     {/* Copy button and timestamp directly under AI messages */}
                     {message.role === "assistant" && (
                       <div className="flex items-center justify-end gap-2 mt-2 mb-4">
@@ -898,11 +898,11 @@ export default function AITutorPage() {
                 <p className="text-sm text-muted-foreground">This action cannot be undone</p>
               </div>
             </div>
-
+            
             <p className="text-sm text-muted-foreground mb-6">
               Are you sure you want to delete this chat? All messages in this conversation will be permanently removed.
             </p>
-
+            
             <div className="flex gap-3 justify-end">
               <Button
                 variant="outline"
@@ -930,7 +930,7 @@ export default function AITutorPage() {
       )}
     </div>
   )
-}
+} 
 
 
 
