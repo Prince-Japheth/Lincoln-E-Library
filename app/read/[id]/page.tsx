@@ -160,7 +160,7 @@ export default function ReadBookPage({ params }: { params: Promise<{ id: string 
     )
   }
   // Only require login if the book is private
-  if (!book.is_public && !user) {
+  if (book && !book.is_public && !user) {
     router.replace("/auth/login")
     return null
   }

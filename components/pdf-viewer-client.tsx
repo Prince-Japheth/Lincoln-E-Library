@@ -220,7 +220,7 @@ const PDFViewer = forwardRef(function PDFViewer({ fileUrl, title, bookId, userId
     <div className="w-full">
       <div
         ref={containerRef}
-        className={`w-full glassmorphism-card rounded-lg pt-5 overflow-x-auto flex flex-col items-center border ${resolvedTheme === 'light' ? 'border-gray-200' : 'border-gray-700'} shadow-none`}
+        className={`w-full glassmorphism-card rounded-lg pt-5Fi overflow-x-auto flex flex-col items-center border ${resolvedTheme === 'light' ? 'border-gray-200' : 'border-gray-700'} shadow-none`}
       >
         {/* Layout toggle (sticky in continuous mode) */}
         <div className={`w-full flex justify-center mb-2 ${layout === 'continuous' ? 'sticky top-0 z-30' : ''}`} style={layout === 'continuous' ? { position: 'sticky', top: 0 } : {}}>
