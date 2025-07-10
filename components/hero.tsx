@@ -100,7 +100,7 @@ export default function Hero({ user }: { user?: any }) {
             {[0, 1, 2].map((i) => (
               <motion.div
                 key={i}
-                className="glassmorphism-card hover-lift rounded-3xl p-8 group"
+                className="bg-white/60 dark:bg-zinc-900/60 backdrop-blur-md border border-white/30 shadow-lg hover-lift rounded-3xl p-8 group"
                 variants={{
                   hidden: { opacity: 0, y: 40 },
                   visible: { opacity: 1, y: 0, transition: { duration: 0.7 } },
@@ -156,7 +156,7 @@ export default function Hero({ user }: { user?: any }) {
             {[0, 1, 2].map((i) => (
               <motion.div
                 key={i}
-                className="glassmorphism-card px-6 py-4 rounded-2xl"
+                className="bg-white/60 dark:bg-zinc-900/60 backdrop-blur-md border border-white/30 shadow-lg px-6 py-4 rounded-2xl"
                 variants={{
                   hidden: { opacity: 0, scale: 0.8 },
                   visible: { opacity: 1, scale: 1, transition: { duration: 0.6 } },

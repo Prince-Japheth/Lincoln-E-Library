@@ -70,6 +70,11 @@ PublicBookGrid({ books, courses }: PublicBookGridProps) {
     )
   }
 
+  // Handler for card navigation (to avoid nested <a> tags)
+  function handleCardNavigate(bookId: string) {
+    window.location.href = `/book/${bookId}`
+  }
+
   return (
     <div className="space-y-8">
       {/* Search and Filters */}
@@ -152,32 +157,33 @@ PublicBookGrid({ books, courses }: PublicBookGridProps) {
       {/* Books Grid */}
       <div className="bento-grid animate-slide-up delay-200">
         {displayedBooks.map((book, index) => (
-          <Link
-            href={`/book/${book.id}`}
+          <div
+            key={book.id}
             className="block group w-full sm:w-auto"
             tabIndex={-1}
             aria-label={`View details for ${book.title}`}
+            role="link"
+            onClick={e => {
+              // Prevent nested button click from triggering card navigation
+              if (
+                (e.target as HTMLElement).closest("button, a") &&
+                (e.target as HTMLElement) !== e.currentTarget
+              ) {
+                return
+              }
+              handleCardNavigate(book.id)
+            }}
+            onKeyDown={e => {
+              if (e.key === "Enter" || e.key === " ") {
+                handleCardNavigate(book.id)
+              }
+            }}
+            style={{ cursor: "pointer" }}
           >
             <Card
-              key={book.id}
               className="w-full max-w-full sm:max-w-[400px] glassmorphism-card border-0 shadow-md overflow-hidden hover-lift group cursor-pointer flex flex-col h-full"
               style={{ animationDelay: `${index * 0.1}s` }}
               tabIndex={0}
-              onClick={e => {
-                // Prevent nested button click from triggering card navigation
-                if (
-                  (e.target as HTMLElement).closest("button, a") &&
-                  (e.target as HTMLElement) !== e.currentTarget
-                ) {
-                  return
-                }
-                window.location.href = `/book/${book.id}`
-              }}
-              onKeyDown={e => {
-                if (e.key === "Enter" || e.key === " ") {
-                  window.location.href = `/book/${book.id}`
-                }
-              }}
               role="link"
               aria-label={`View details for ${book.title}`}
             >
@@ -214,14 +220,16 @@ PublicBookGrid({ books, courses }: PublicBookGridProps) {
                 <Button
                   size="sm"
                   className="flex-1 bg-primary text-white hover:bg-primary/90 hover:scale-105 transition-all duration-300"
-                  asChild
                   tabIndex={0}
-                  onClick={e => e.stopPropagation()}
+                  onClick={e => {
+                    e.stopPropagation()
+                    handleCardNavigate(book.id)
+                  }}
                 >
-                  <Link href={`/book/${book.id}`}>
+                  <span className="inline-flex items-center justify-center gap-2 whitespace-nowrap">
                     <Eye className="h-4 w-4 mr-2" />
                     View Details
-                  </Link>
+                  </span>
                 </Button>
 
                 <Button
@@ -238,7 +246,7 @@ PublicBookGrid({ books, courses }: PublicBookGridProps) {
                 </Button>
               </CardFooter>
             </Card>
-          </Link>
+          </div>
         ))}
       </div>
 

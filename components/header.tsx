@@ -63,7 +63,7 @@ export default function Header({ user, userRole }: HeaderProps) {
 
   return (
     <>
-    <header className="fixed top-0 left-0 right-0 z-50 glassmorphism-nav">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-white/60 dark:bg-zinc-900/60 backdrop-blur-md border border-white/30 shadow-lg glassmorphism-nav">
       <div className="container mx-auto px-6">
         <div className="flex items-center justify-between h-16">
           <Link href="/" className="flex items-center space-x-3 animate-slide-left">
