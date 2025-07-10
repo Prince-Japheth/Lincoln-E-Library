@@ -1,8 +1,17 @@
+"use client"
+
 import Link from "next/link"
 import { Mail, Phone, MapPin } from "lucide-react"
 import AnimatedLogo from "@/components/animated-logo"
+import { useEffect, useState } from "react"
+import { createClient } from "@/lib/supabase/client"
 
 export default function Footer() {
+  const [user, setUser] = useState<any>(null)
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getUser().then(({ data }) => setUser(data.user))
+  }, [])
   return (
     <footer className="bg-muted/30 border-t border-border/40">
       <div className="container mx-auto px-4 py-12">
@@ -25,12 +34,20 @@ export default function Footer() {
               <Link href="/" className="block text-muted-foreground hover:text-[#fe0002] transition-colors">
                 Home
               </Link>
-              <Link href="/auth/login" className="block text-muted-foreground hover:text-[#fe0002] transition-colors">
-                Sign In
-              </Link>
-              <Link href="/auth/signup" className="block text-muted-foreground hover:text-[#fe0002] transition-colors">
-                Sign Up
-              </Link>
+              {user ? (
+                <>
+                  <Link href="/student/dashboard" className="block text-muted-foreground hover:text-[#fe0002] transition-colors">Dashboard</Link>
+                  <Link href="/student/profile" className="block text-muted-foreground hover:text-[#fe0002] transition-colors">Profile</Link>
+                  <Link href="/videos" className="block text-muted-foreground hover:text-[#fe0002] transition-colors">Videos</Link>
+                  <Link href="/student/ai-tutor" className="block text-muted-foreground hover:text-[#fe0002] transition-colors">AI Tutor</Link>
+                  <Link href="/auth/logout" className="block text-muted-foreground hover:text-[#fe0002] transition-colors">Sign Out</Link>
+                </>
+              ) : (
+                <>
+                  <Link href="/auth/login" className="block text-muted-foreground hover:text-[#fe0002] transition-colors">Sign In</Link>
+                  <Link href="/auth/signup" className="block text-muted-foreground hover:text-[#fe0002] transition-colors">Sign Up</Link>
+                </>
+              )}
             </div>
           </div>
 

@@ -6,6 +6,7 @@ import { Document, Page, pdfjs } from 'react-pdf'
 import 'react-pdf/dist/Page/AnnotationLayer.css'
 import 'react-pdf/dist/Page/TextLayer.css'
 import { useTheme } from "next-themes"
+import { useState, useRef, useEffect } from "react"
 
 // Set the workerSrc to the local file in public/
 pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js';
@@ -17,9 +18,10 @@ interface PDFViewerProps {
   title: string
   pageNumber?: number
   setPageNumber?: (page: number) => void
+  onVisiblePageChange?: (page: number) => void
 }
 
-export default function PDFViewer({ fileUrl, title, bookId, userId, pageNumber: controlledPageNumber, setPageNumber: setControlledPageNumber }: PDFViewerProps) {
+export default function PDFViewer({ fileUrl, title, bookId, userId, pageNumber: controlledPageNumber, setPageNumber: setControlledPageNumber, onVisiblePageChange }: PDFViewerProps) {
   const [numPages, setNumPages] = React.useState<number>(0)
   const [internalPageNumber, setInternalPageNumber] = React.useState<number>(1)
   const pageNumber = controlledPageNumber !== undefined ? controlledPageNumber : internalPageNumber
@@ -33,6 +35,9 @@ export default function PDFViewer({ fileUrl, title, bookId, userId, pageNumber: 
   const { resolvedTheme } = useTheme()
   const [sessionStartTime, setSessionStartTime] = React.useState<Date | null>(null)
   const [lastActivityTime, setLastActivityTime] = React.useState<Date>(new Date())
+  const [layout, setLayout] = useState<'single' | 'continuous'>('single')
+  const [showBackToTop, setShowBackToTop] = useState(false)
+  const scrollContainerRef = useRef<HTMLDivElement>(null)
 
   React.useEffect(() => {
     function handleResize() {
@@ -50,6 +55,36 @@ export default function PDFViewer({ fileUrl, title, bookId, userId, pageNumber: 
       setContainerWidth(containerRef.current.offsetWidth)
     }
   }, [containerRef.current])
+
+  // Show back to top button in continuous mode when scrolled down
+  useEffect(() => {
+    if (layout !== 'continuous') return;
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    function onScroll() {
+      if (!container) return;
+      setShowBackToTop(container.scrollTop > 200)
+      // Sidebar sync: detect visible page
+      if (onVisiblePageChange && numPages > 0) {
+        const pageEls = Array.from(container.querySelectorAll('[data-pdf-page]')) as HTMLElement[];
+        let bestPage = 1;
+        let bestVisible = 0;
+        pageEls.forEach((el, idx) => {
+          const rect = el.getBoundingClientRect();
+          const containerRect = container.getBoundingClientRect();
+          // How much of the page is visible in the container?
+          const visible = Math.max(0, Math.min(rect.bottom, containerRect.bottom) - Math.max(rect.top, containerRect.top));
+          if (visible > bestVisible) {
+            bestVisible = visible;
+            bestPage = idx + 1;
+          }
+        });
+        onVisiblePageChange(bestPage);
+      }
+    }
+    container.addEventListener('scroll', onScroll)
+    return () => container.removeEventListener('scroll', onScroll)
+  }, [layout, numPages, onVisiblePageChange])
 
   // Start reading session when component mounts
   React.useEffect(() => {
@@ -172,8 +207,40 @@ export default function PDFViewer({ fileUrl, title, bookId, userId, pageNumber: 
         ref={containerRef}
         className={`w-full glassmorphism-card rounded-lg pt-5 overflow-x-auto flex flex-col items-center border ${resolvedTheme === 'light' ? 'border-gray-200' : 'border-gray-700'} shadow-none`}
       >
-        {/* <div className="w-full text-xs text-gray-400 px-4 pt-2 pb-1">PDF URL: {fileUrl}</div> */}
-        <div className="flex justify-center w-full overflow-y-auto">
+        {/* Layout toggle (sticky in continuous mode) */}
+        <div className={`w-full flex justify-center mb-2 ${layout === 'continuous' ? 'sticky top-0 z-30 bg-background/80 backdrop-blur' : ''}`} style={layout === 'continuous' ? { position: 'sticky', top: 0 } : {}}>
+          <button
+            className={`px-3 py-1 rounded-lg border text-sm font-medium transition-colors duration-150 mr-2
+              ${layout === 'single'
+                ? resolvedTheme === 'dark'
+                  ? 'bg-[#fe0002] text-white border-[#fe0002]' // active dark
+                  : 'bg-[#fe0002] text-white border-[#fe0002]' // active light
+                : resolvedTheme === 'dark'
+                  ? 'bg-zinc-900 text-[#fe0002] border-zinc-700' // inactive dark
+                  : 'bg-white text-[#fe0002] border-gray-300' // inactive light
+              }
+            `}
+            onClick={() => setLayout('single')}
+          >
+            Single Page
+          </button>
+          <button
+            className={`px-3 py-1 rounded-lg border text-sm font-medium transition-colors duration-150
+              ${layout === 'continuous'
+                ? resolvedTheme === 'dark'
+                  ? 'bg-[#fe0002] text-white border-[#fe0002]' // active dark
+                  : 'bg-[#fe0002] text-white border-[#fe0002]' // active light
+                : resolvedTheme === 'dark'
+                  ? 'bg-zinc-900 text-[#fe0002] border-zinc-700' // inactive dark
+                  : 'bg-white text-[#fe0002] border-gray-300' // inactive light
+              }
+            `}
+            onClick={() => setLayout('continuous')}
+          >
+            Continuous
+          </button>
+        </div>
+        <div className="flex justify-center w-full overflow-y-auto" ref={layout === 'continuous' ? scrollContainerRef : undefined} style={layout === 'continuous' ? { maxHeight: '80vh', position: 'relative' } : {}}>
           <Document
             file={pdfSource}
             onLoadSuccess={onDocumentLoadSuccess}
@@ -186,16 +253,65 @@ export default function PDFViewer({ fileUrl, title, bookId, userId, pageNumber: 
             error={<div className="p-8 text-center text-red-600">{loadError || 'Failed to load PDF.'}</div>}
             onLoadProgress={({ loaded, total }) => setProgress(Math.round((loaded / total) * 100))}
           >
-            {containerWidth > 0 && (
-              <Page
-                pageNumber={pageNumber}
-                width={containerWidth - 32}
-                renderTextLayer={true}
-                renderAnnotationLayer={false}
-              />
+            {containerWidth > 0 && layout === 'single' && (
+              <>
+                <Page
+                  pageNumber={pageNumber}
+                  width={containerWidth - 32}
+                  renderTextLayer={true}
+                  renderAnnotationLayer={false}
+                />
+                {/* Preload next and previous pages for instant navigation */}
+                <div style={{ display: 'none' }}>
+                  {numPages > 1 && pageNumber < numPages && (
+                    <Page
+                      pageNumber={pageNumber + 1}
+                      width={containerWidth - 32}
+                      renderTextLayer={false}
+                      renderAnnotationLayer={false}
+                    />
+                  )}
+                  {numPages > 1 && pageNumber > 1 && (
+                    <Page
+                      pageNumber={pageNumber - 1}
+                      width={containerWidth - 32}
+                      renderTextLayer={false}
+                      renderAnnotationLayer={false}
+                    />
+                  )}
+                </div>
+              </>
+            )}
+            {containerWidth > 0 && layout === 'continuous' && (
+              <>
+                {Array.from({ length: numPages }, (_, i) => (
+                  <div key={i} data-pdf-page>
+                    <Page
+                      pageNumber={i + 1}
+                      width={containerWidth - 32}
+                      renderTextLayer={true}
+                      renderAnnotationLayer={false}
+                    />
+                  </div>
+                ))}
+              </>
             )}
           </Document>
         </div>
+        {/* Back to Top button for continuous mode */}
+        {layout === 'continuous' && showBackToTop && (
+          <button
+            onClick={() => {
+              const container = scrollContainerRef.current;
+              if (container) container.scrollTo({ top: 0, behavior: 'smooth' })
+            }}
+            className="fixed bottom-8 right-8 z-50 bg-[#fe0002] text-white px-4 py-2 rounded-full shadow-lg hover:bg-[#ff4444] transition-all duration-300"
+            style={{ boxShadow: '0 4px 24px 0 rgba(0,0,0,0.15)' }}
+            aria-label="Back to Top"
+          >
+            ↑ Back to Top
+          </button>
+        )}
         <div className="flex items-center justify-center gap-4 py-4 flex-shrink-0">
           <button
             onClick={() => setPageNumber(Math.max(1, pageNumber - 1))}

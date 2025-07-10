@@ -26,6 +26,7 @@ export default function ReadBookPage({ params }: { params: { id: string } }) {
   const supabase = createClient()
   const router = useRouter()
   const { resolvedTheme } = useTheme()
+  const [sidebarActivePage, setSidebarActivePage] = useState<number>(1)
 
   useEffect(() => {
     async function fetchData() {
@@ -120,6 +121,35 @@ export default function ReadBookPage({ params }: { params: { id: string } }) {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }, [pageNumber, numPages, book?.title])
 
+  // Swipe gesture for fullscreen PDF navigation
+  useEffect(() => {
+    if (!isFullscreen) return;
+    let touchStartX = 0;
+    let touchEndX = 0;
+    function handleTouchStart(e: TouchEvent) {
+      touchStartX = e.changedTouches[0].screenX;
+    }
+    function handleTouchEnd(e: TouchEvent) {
+      touchEndX = e.changedTouches[0].screenX;
+      const dx = touchEndX - touchStartX;
+      if (Math.abs(dx) > 50) {
+        if (dx < 0) setPageNumber(p => Math.min(numPages, p + 1)); // swipe left: next page
+        else setPageNumber(p => Math.max(1, p - 1)); // swipe right: prev page
+      }
+    }
+    const viewer = viewerRef.current;
+    if (viewer) {
+      viewer.addEventListener('touchstart', handleTouchStart);
+      viewer.addEventListener('touchend', handleTouchEnd);
+    }
+    return () => {
+      if (viewer) {
+        viewer.removeEventListener('touchstart', handleTouchStart);
+        viewer.removeEventListener('touchend', handleTouchEnd);
+      }
+    };
+  }, [isFullscreen, numPages]);
+
   if (error || !book) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -172,7 +202,7 @@ export default function ReadBookPage({ params }: { params: { id: string } }) {
           {Array.from({ length: numPages }, (_, i) => (
             <div
               key={i}
-              className={`mb-3 cursor-pointer p-2 rounded-xl border-2 transition-all duration-200 ${pageNumber === i + 1 ? 'border-[#fe0002]' : 'border-transparent'
+              className={`mb-3 cursor-pointer p-2 rounded-xl border-2 transition-all duration-200 ${sidebarActivePage === i + 1 ? 'border-[#fe0002]' : 'border-transparent'
                 }`}
               onClick={() => {
                 setPageNumber(i + 1)
@@ -200,7 +230,7 @@ export default function ReadBookPage({ params }: { params: { id: string } }) {
         {/* Pc header */}
         <div
           className={`
-            w-full fixed top-0 z-20 px-4 py-2 pt-20 flex items-center
+             fixed top-20 z-20 mx-4 my-2 flex items-center
             lg:bg-transparent bg-background lg:right-0
             hidden md:hidden lg:flex
           `}
@@ -260,6 +290,7 @@ export default function ReadBookPage({ params }: { params: { id: string } }) {
             title={book.title}
             pageNumber={pageNumber}
             setPageNumber={setPageNumber}
+            onVisiblePageChange={setSidebarActivePage}
           />
         </div>
       </div>

@@ -48,7 +48,7 @@ export default function BookUploadDialog({ open, onOpenChange, courses, onBookAd
   const [uploadProgress, setUploadProgress] = useState(0)
   const [courseSearch, setCourseSearch] = useState("")
   const [genreSuggestions, setGenreSuggestions] = useState<string[]>([]);
-
+  
   const coverImageRef = useRef<HTMLInputElement>(null)
   const bookFileRef = useRef<HTMLInputElement>(null)
   const supabase = createClient()
@@ -255,49 +255,49 @@ export default function BookUploadDialog({ open, onOpenChange, courses, onBookAd
               <AlertDescription>Book uploaded successfully!</AlertDescription>
             </Alert>
           )}
-          {error && (
+              {error && (
             <Alert className={`mt-2 border-red-600 ${resolvedTheme === 'dark' ? 'bg-red-900/30' : 'bg-red-50'} shadow-lg pointer-events-auto`}>
               <X className="h-5 w-5 text-red-600" />
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
         </div>
 
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="title">Title *</Label>
-                <Input
-                  id="title"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="Book title"
-                  aria-invalid={!title}
-                  className="w-full"
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="title">Title *</Label>
+                  <Input
+                    id="title"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder="Book title"
+                    aria-invalid={!title}
+                    className="w-full"
+                  />
+                </div>
+
+                <div className="grid gap-2">
+                  <Label htmlFor="author">Author *</Label>
+                  <Input
+                    id="author"
+                    value={author}
+                    onChange={(e) => setAuthor(e.target.value)}
+                    placeholder="Author name"
+                    aria-invalid={!author}
+                    className="w-full"
+                  />
+                </div>
               </div>
 
-              <div className="grid gap-2">
-                <Label htmlFor="author">Author *</Label>
-                <Input
-                  id="author"
-                  value={author}
-                  onChange={(e) => setAuthor(e.target.value)}
-                  placeholder="Author name"
-                  aria-invalid={!author}
-                  className="w-full"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="genre">Genre *</Label>
-                <Input
-                  id="genre"
-                  value={genre}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="genre">Genre *</Label>
+                  <Input
+                    id="genre"
+                    value={genre}
                   onChange={e => {
                     setGenre(e.target.value);
                     // Filter suggestions as user types
@@ -306,8 +306,8 @@ export default function BookUploadDialog({ open, onOpenChange, courses, onBookAd
                     );
                   }}
                   placeholder="Genre"
-                  aria-invalid={!genre}
-                  className="w-full"
+                    aria-invalid={!genre}
+                    className="w-full"
                   autoComplete="off"
                 />
                 {genre && genreSuggestions.length > 0 && (
@@ -323,60 +323,60 @@ export default function BookUploadDialog({ open, onOpenChange, courses, onBookAd
                     ))}
                   </div>
                 )}
+                </div>
+
+                <div className="grid gap-2">
+                  <Label htmlFor="course">Course</Label>
+                  <Select value={courseId} onValueChange={setCourseId}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a course (optional)" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <div className="p-2">
+                        <Input
+                          type="text"
+                          placeholder="Search courses..."
+                          value={courseSearch}
+                          onChange={e => setCourseSearch(e.target.value)}
+                          className="mb-2 w-full"
+                        />
+                      </div>
+                      <SelectItem value="none">No course</SelectItem>
+                      {filteredCourses.map((course) => (
+                        <SelectItem key={course.id} value={course.id}>{course.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
               <div className="grid gap-2">
-                <Label htmlFor="course">Course</Label>
-                <Select value={courseId} onValueChange={setCourseId}>
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Brief description of the book"
+                  rows={3}
+                />
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="bookStatus">Book Status</Label>
+                <Select value={bookStatus} onValueChange={setBookStatus}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select a course (optional)" />
+                    <SelectValue placeholder="Select book status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <div className="p-2">
-                      <Input
-                        type="text"
-                        placeholder="Search courses..."
-                        value={courseSearch}
-                        onChange={e => setCourseSearch(e.target.value)}
-                        className="mb-2 w-full"
-                      />
-                    </div>
-                    <SelectItem value="none">No course</SelectItem>
-                    {filteredCourses.map((course) => (
-                      <SelectItem key={course.id} value={course.id}>{course.name}</SelectItem>
-                    ))}
+                    <SelectItem value="draft">Draft (Not published)</SelectItem>
+                    <SelectItem value="private">Private (Only logged in users can see)</SelectItem>
+                    <SelectItem value="public">Public (Everyone can see)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-            </div>
 
-            <div className="grid gap-2">
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Brief description of the book"
-                rows={3}
-              />
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="bookStatus">Book Status</Label>
-              <Select value={bookStatus} onValueChange={setBookStatus}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select book status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="draft">Draft (Not published)</SelectItem>
-                  <SelectItem value="private">Private (Only logged in users can see)</SelectItem>
-                  <SelectItem value="public">Public (Everyone can see)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* File Upload Section */}
-            <div className="space-y-4">
+              {/* File Upload Section */}
+              <div className="space-y-4">
               <div className="grid gap-2">
                 <Label>Book File (PDF) *</Label>
                 <Tabs defaultValue="upload" className="w-full">
@@ -481,26 +481,26 @@ export default function BookUploadDialog({ open, onOpenChange, courses, onBookAd
                 </Tabs>
               </div>
 
-              {uploadProgress > 0 && uploadProgress < 100 && (
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div
+                {uploadProgress > 0 && uploadProgress < 100 && (
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div 
                     className="bg-red-600 h-2 rounded-full transition-all duration-300"
-                    style={{ width: `${uploadProgress}%` }}
-                  ></div>
-                </div>
-              )}
+                      style={{ width: `${uploadProgress}%` }}
+                    ></div>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
 
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={handleClose}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? "Uploading..." : "Add Book"}
-            </Button>
-          </DialogFooter>
-        </form>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={handleClose}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={loading}>
+                {loading ? "Uploading..." : "Add Book"}
+              </Button>
+            </DialogFooter>
+          </form>
       </DialogContent>
     </Dialog>
   )
