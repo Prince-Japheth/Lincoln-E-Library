@@ -154,13 +154,13 @@ PublicBookGrid({ books, courses }: PublicBookGridProps) {
         {displayedBooks.map((book, index) => (
           <Link
             href={`/book/${book.id}`}
-            className="block group"
+            className="block group w-full sm:w-auto"
             tabIndex={-1}
             aria-label={`View details for ${book.title}`}
           >
             <Card
               key={book.id}
-              className="w-full sm:w-auto glassmorphism-card border-0 shadow-md overflow-hidden hover-lift group cursor-pointer flex flex-col h-full"
+              className="w-full max-w-full sm:max-w-[400px] glassmorphism-card border-0 shadow-md overflow-hidden hover-lift group cursor-pointer flex flex-col h-full"
               style={{ animationDelay: `${index * 0.1}s` }}
               tabIndex={0}
               onClick={e => {
