@@ -34,7 +34,8 @@ interface PublicBookGridProps {
 
 const BOOKS_PER_PAGE = 8
 
-export default function PublicBookGrid({ books, courses }: PublicBookGridProps) {
+export default function 
+PublicBookGrid({ books, courses }: PublicBookGridProps) {
   const [selectedGenre, setSelectedGenre] = useState<string>("all")
   const [selectedCourse, setSelectedCourse] = useState<string>("all")
   const [searchQuery, setSearchQuery] = useState("")
