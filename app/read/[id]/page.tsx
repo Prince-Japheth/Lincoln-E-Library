@@ -31,18 +31,31 @@ export default function ReadBookPage({ params }: { params: { id: string } }) {
     async function fetchData() {
       setLoading(true)
       setError(null)
+      console.log('📖 Read Page: Loading book data for ID:', id)
+      
       const { data: userData } = await supabase.auth.getUser()
       setUser(userData.user)
+      console.log('📖 Read Page: User loaded:', userData.user?.id)
+      
       const { data: bookData, error: bookError } = await supabase
         .from("books")
         .select("*")
         .eq("id", id)
         .single()
+      
       if (bookError || !bookData) {
+        console.error('❌ Read Page: Book not found:', bookError)
         setError("Book not found.")
         setLoading(false)
         return
       }
+      
+      console.log('✅ Read Page: Book loaded:', {
+        title: bookData.title,
+        author: bookData.author,
+        fileUrl: bookData.file_url,
+        isPublic: bookData.is_public
+      })
       setBook(bookData)
       setLoading(false)
     }
@@ -87,13 +100,15 @@ export default function ReadBookPage({ params }: { params: { id: string } }) {
 
   // Generate thumbnails for sidebar
   const onDocumentLoadSuccess = ({ numPages: nextNumPages }: { numPages: number }) => {
+    console.log('📖 Read Page: PDF loaded with', nextNumPages, 'pages for book:', book?.title)
     setNumPages(nextNumPages)
   }
 
   // Scroll to top when page changes
   useEffect(() => {
+    console.log('📖 Read Page: Page changed to', pageNumber, 'of', numPages, 'for book:', book?.title)
     window.scrollTo({ top: 0, behavior: 'smooth' })
-  }, [pageNumber])
+  }, [pageNumber, numPages, book?.title])
   
   if (error || !book) {
     return (

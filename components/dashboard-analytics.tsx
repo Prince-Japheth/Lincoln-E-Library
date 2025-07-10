@@ -33,6 +33,8 @@ interface AnalyticsData {
     totalReads: number
     averageProgress: number
     mostReadGenre: string
+    totalReadingTimeMinutes: number
+    averageReadingTimeMinutes: number
   }
 }
 
@@ -158,20 +160,38 @@ export default function DashboardAnalytics({ userRole }: DashboardAnalyticsProps
   }
 
   const loadReadingData = async () => {
+    console.log('📊 Admin Analytics: Loading reading data...')
+    
     const { data: reads } = await supabase
       .from("reading_progress")
-      .select("progress_percentage, books(genre)")
+      .select("progress_percentage, reading_time_minutes, books(genre)")
+
+    console.log('📊 Admin Analytics: Retrieved reading data:', {
+      totalRecords: reads?.length || 0,
+      records: reads?.map(read => ({
+        progressPercentage: read.progress_percentage,
+        readingTimeMinutes: read.reading_time_minutes,
+        genre: read.books?.genre
+      }))
+    })
 
     if (!reads || reads.length === 0) {
+      console.log('📊 Admin Analytics: No reading data found')
       return {
         totalReads: 0,
         averageProgress: 0,
-        mostReadGenre: "None"
+        mostReadGenre: "None",
+        totalReadingTimeMinutes: 0,
+        averageReadingTimeMinutes: 0
       }
     }
 
     const totalReads = reads.length
     const averageProgress = reads.reduce((sum, read) => sum + (read.progress_percentage || 0), 0) / totalReads
+    
+    // Calculate total reading time
+    const totalReadingTimeMinutes = reads.reduce((sum, read) => sum + (read.reading_time_minutes || 0), 0)
+    const averageReadingTimeMinutes = totalReadingTimeMinutes / totalReads
 
     // Calculate most read genre
     const genreCounts: { [key: string]: number } = {}
@@ -183,11 +203,17 @@ export default function DashboardAnalytics({ userRole }: DashboardAnalyticsProps
     const mostReadGenre = Object.entries(genreCounts)
       .sort(([,a], [,b]) => b - a)[0]?.[0] || "None"
 
-    return {
+    const result = {
       totalReads,
       averageProgress: Math.round(averageProgress),
-      mostReadGenre
+      mostReadGenre,
+      totalReadingTimeMinutes: Math.round(totalReadingTimeMinutes),
+      averageReadingTimeMinutes: Math.round(averageReadingTimeMinutes)
     }
+
+    console.log('📊 Admin Analytics: Calculated reading stats:', result)
+
+    return result
   }
 
   if (loading) {
@@ -404,6 +430,14 @@ export default function DashboardAnalytics({ userRole }: DashboardAnalyticsProps
               <div className="flex items-center justify-between">
                 <span className="text-sm">Total Reading Sessions</span>
                 <span className="text-sm font-medium">{analytics.readingStats.totalReads}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm">Total Reading Time</span>
+                <span className="text-sm font-medium">{Math.round(analytics.readingStats.totalReadingTimeMinutes / 60)} hours</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm">Average Session Time</span>
+                <span className="text-sm font-medium">{analytics.readingStats.averageReadingTimeMinutes} minutes</span>
               </div>
             </div>
           </CardContent>

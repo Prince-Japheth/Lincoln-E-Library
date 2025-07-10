@@ -30,7 +30,9 @@ export default function PDFViewer({ fileUrl, title, bookId, userId, pageNumber: 
   const supabase = React.useRef(createClient())
   const containerRef = React.useRef<HTMLDivElement>(null)
   const [containerWidth, setContainerWidth] = React.useState<number>(0)
-  const { resolvedTheme } = useTheme();
+  const { resolvedTheme } = useTheme()
+  const [sessionStartTime, setSessionStartTime] = React.useState<Date | null>(null)
+  const [lastActivityTime, setLastActivityTime] = React.useState<Date>(new Date())
 
   React.useEffect(() => {
     function handleResize() {
@@ -49,19 +51,33 @@ export default function PDFViewer({ fileUrl, title, bookId, userId, pageNumber: 
     }
   }, [containerRef.current])
 
+  // Start reading session when component mounts
   React.useEffect(() => {
-    if (!userId || !bookId) return;
-    // Upsert progress on page change
-    supabase.current.from('reading_progress').upsert({
-      user_id: userId,
-      book_id: bookId,
-      current_page: pageNumber,
-      total_pages: numPages,
-      progress_percentage: numPages > 0 ? Math.round((pageNumber / numPages) * 100) : 0,
-      last_read_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    });
-  }, [userId, bookId, pageNumber, numPages]);
+    if (userId && bookId) {
+      const startTime = new Date()
+      setSessionStartTime(startTime)
+      setLastActivityTime(startTime)
+      console.log('📚 PDF Viewer: Reading session started at:', startTime.toISOString())
+    }
+  }, [userId, bookId])
+
+  // Track user activity
+  React.useEffect(() => {
+    const updateActivity = () => {
+      setLastActivityTime(new Date())
+    }
+
+    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart']
+    events.forEach(event => {
+      document.addEventListener(event, updateActivity)
+    })
+
+    return () => {
+      events.forEach(event => {
+        document.removeEventListener(event, updateActivity)
+      })
+    }
+  }, [])
 
   React.useEffect(() => {
     if (!fileUrl) {
@@ -78,6 +94,58 @@ export default function PDFViewer({ fileUrl, title, bookId, userId, pageNumber: 
       }
     };
   }, [fileUrl]);
+
+  React.useEffect(() => {
+    if (!userId || !bookId) return;
+    
+    // Calculate reading time
+    const now = new Date()
+    const sessionEndTime = lastActivityTime
+    const readingTimeMinutes = sessionStartTime 
+      ? Math.round((sessionEndTime.getTime() - sessionStartTime.getTime()) / (1000 * 60))
+      : 0
+    
+    const progressData = {
+      user_id: userId,
+      book_id: bookId,
+      current_page: pageNumber,
+      total_pages: numPages,
+      progress_percentage: numPages > 0 ? Math.round((pageNumber / numPages) * 100) : 0,
+      reading_time_minutes: readingTimeMinutes,
+      session_start_time: sessionStartTime?.toISOString(),
+      session_end_time: sessionEndTime.toISOString(),
+      last_read_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    
+    console.log('📚 PDF Viewer: Updating reading progress:', {
+      userId,
+      bookId,
+      pageNumber,
+      numPages,
+      progressPercentage: progressData.progress_percentage,
+      readingTimeMinutes: progressData.reading_time_minutes,
+      sessionStart: progressData.session_start_time,
+      sessionEnd: progressData.session_end_time,
+      timestamp: progressData.last_read_at
+    });
+    
+    // Upsert progress on page change
+    supabase.current.from('reading_progress').upsert(progressData, {
+      onConflict: 'user_id,book_id'
+    })
+      .then(({ data, error }) => {
+        if (error) {
+          console.error('❌ PDF Viewer: Failed to update reading progress:', error);
+        } else {
+          console.log('✅ PDF Viewer: Successfully saved reading progress to database:', {
+            data,
+            readingTimeMinutes,
+            progressPercentage: progressData.progress_percentage
+          });
+        }
+      });
+  }, [userId, bookId, pageNumber, numPages, sessionStartTime, lastActivityTime]);
 
   function onDocumentLoadSuccess({ numPages: nextNumPages }: { numPages: number }) {
     setNumPages(nextNumPages)

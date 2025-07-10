@@ -191,7 +191,7 @@ export default function LoadingSkeleton() {
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90">
       <div className="flex flex-col items-center">
-        <AnimatedLogo className="h-20 w-20 animate-spin-slow mb-6" />
+        <AnimatedLogo className="h-32 w-32 animate-spin-slow mb-10" />
         <div className="w-32 h-2 bg-gradient-to-r from-[#fe0002] via-[#ff4444] to-[#fe0002] rounded-full animate-pulse" />
       </div>
     </div>
