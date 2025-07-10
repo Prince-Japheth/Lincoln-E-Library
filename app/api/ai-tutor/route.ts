@@ -18,31 +18,31 @@ AI: [SQL]SELECT * FROM videos WHERE course_id = (SELECT id FROM courses WHERE na
 
 async function callGemini(messages: any[], apiKey: string, retries = 2): Promise<string> {
   for (let attempt = 0; attempt <= retries; attempt++) {
-    const geminiResponse = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-goog-api-key": apiKey,
-      },
-      body: JSON.stringify({
-        contents: messages,
-      }),
-    })
-    if (!geminiResponse.ok) {
-      let errorText = await geminiResponse.text()
-      let errorJson
-      try { errorJson = JSON.parse(errorText) } catch { errorJson = { raw: errorText } }
+  const geminiResponse = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-goog-api-key": apiKey,
+    },
+    body: JSON.stringify({
+      contents: messages,
+    }),
+  })
+  if (!geminiResponse.ok) {
+    let errorText = await geminiResponse.text()
+    let errorJson
+    try { errorJson = JSON.parse(errorText) } catch { errorJson = { raw: errorText } }
       // Retry on 503 (model overloaded)
       if (geminiResponse.status === 503 && attempt < retries) {
         await new Promise(res => setTimeout(res, 1000)) // wait 1 second
         continue
       }
-      console.error("Gemini API error:", errorJson)
-      throw new Error(errorJson.error?.message || errorText || "Gemini API error")
-    }
-    const data = await geminiResponse.json()
-    const aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text || "I'm sorry, I couldn't process that request."
-    return aiResponse
+    console.error("Gemini API error:", errorJson)
+    throw new Error(errorJson.error?.message || errorText || "Gemini API error")
+  }
+  const data = await geminiResponse.json()
+  const aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text || "I'm sorry, I couldn't process that request."
+  return aiResponse
   }
   throw new Error("Gemini API error: All retries failed.")
 }

@@ -10,9 +10,10 @@ import { Document, Page, pdfjs } from 'react-pdf'
 import 'react-pdf/dist/Page/AnnotationLayer.css'
 import 'react-pdf/dist/Page/TextLayer.css'
 import { useTheme } from "next-themes"
+import React from "react"
 
-export default function ReadBookPage({ params }: { params: { id: string } }) {
-  const { id } = params
+export default function ReadBookPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = React.use(params)
   const [book, setBook] = useState<any | null>(null)
   const [user, setUser] = useState<any | null>(null)
   const [loading, setLoading] = useState(true)
@@ -151,10 +152,17 @@ export default function ReadBookPage({ params }: { params: { id: string } }) {
     };
   }, [isFullscreen, numPages]);
 
-  if (error || !book) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-red-600 text-lg font-semibold">{error || "Book not found."}</div>
+        <div className="text-lg text-muted-foreground">Loading book...</div>
+      </div>
+    )
+  }
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-red-600 text-lg font-semibold">{error}</div>
       </div>
     )
   }

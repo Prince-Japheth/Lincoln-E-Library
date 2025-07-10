@@ -425,3 +425,4 @@ function AnimatedBookLoader() {
     100% { transform: rotate(360deg); }
   }
 `}</style> 
+export default PDFViewer; 
