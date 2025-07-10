@@ -148,9 +148,10 @@ const DashboardAnalytics = forwardRef(function DashboardAnalytics({ userRole }: 
     const startDate = new Date()
     startDate.setDate(startDate.getDate() - days)
 
+    // NOTE: This join now works because audit_logs.user_id is a foreign key to user_profiles.user_id
     const { data } = await supabase
       .from("audit_logs")
-      .select(`*, user_profiles: user_id (full_name, email)`)
+      .select("*, user_profiles(full_name, email)")
       .gte("created_at", startDate.toISOString())
       .order("created_at", { ascending: false })
       .limit(10)
@@ -616,8 +617,8 @@ const DashboardAnalytics = forwardRef(function DashboardAnalytics({ userRole }: 
                     // Parse action target
                     let target = ""
                     let changeSummary = ""
-                    let newVals = {}
-                    let oldVals = {}
+                    let newVals: Record<string, any> = {}
+                    let oldVals: Record<string, any> = {}
                     try {
                       newVals = activity.new_values ? JSON.parse(activity.new_values) : {}
                     } catch {}

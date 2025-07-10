@@ -574,13 +574,16 @@ export default function AdminDashboard({ books: initialBooks, bookRequests, cour
         console.error("[DEBUG] No user found for user_id:", user.user_id)
       } else {
         setUserActionSuccess("User updated successfully.")
+        // Find the old user before updating state
+        const oldUser = usersState.find(u => u.user_id === user.user_id)
         setUsersState((prev: any[]) => prev.map(u => u.user_id === user.user_id ? { ...u, role: newRole } : u))
         try {
           await logAuditEvent({
-            userId: users[0]?.user_id, // Use auth user id
+            userId: users[0]?.user_id,
             action: "edit_user",
             tableName: "user_profiles",
             recordId: user.user_id,
+            oldValues: oldUser,
             newValues: { ...user, role: newRole },
           })
           console.log("[AUDIT] User edited and audit log updated.")
@@ -592,7 +595,6 @@ export default function AdminDashboard({ books: initialBooks, bookRequests, cour
           setUserActionSuccess("")
           setShowEditUserDialog(false)
           setEditingUser(null)
-          // window.location.reload(); // Removed: no full page reload
         }, 1500)
       }
     } catch (err) {
