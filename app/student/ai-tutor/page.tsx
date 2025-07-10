@@ -857,7 +857,7 @@ export default function AITutorPage() {
                   placeholder="Ask me anything about your studies..."
                   disabled={false}
                   aria-invalid={false}
-                  className="flex-1 h-12 min-h-[3rem] max-h-40 glassmorphism-card border-0 text-base bg-white resize-none py-3 px-4 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#fe0002]"
+                  className="flex-1 h-12 min-h-[3rem] max-h-40 glassmorphism-card border-0 text-base bg-white resize-none py-3 px-4 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#fe0002] placeholder:text-base placeholder:sm:text-base placeholder:text-sm"
                   rows={1}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && !(e.shiftKey || e.metaKey)) {
