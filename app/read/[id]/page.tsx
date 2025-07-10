@@ -152,13 +152,6 @@ export default function ReadBookPage({ params }: { params: Promise<{ id: string 
     };
   }, [isFullscreen, numPages]);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-lg text-muted-foreground">Loading book...</div>
-      </div>
-    )
-  }
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">

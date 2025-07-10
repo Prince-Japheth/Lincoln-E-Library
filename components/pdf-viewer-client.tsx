@@ -220,10 +220,10 @@ const PDFViewer = forwardRef(function PDFViewer({ fileUrl, title, bookId, userId
     <div className="w-full">
       <div
         ref={containerRef}
-        className={`w-full glassmorphism-card rounded-lg pt-5 overflow-x-auto flex flex-col items-center border ${resolvedTheme === 'light' ? 'border-gray-200' : 'border-gray-700'} shadow-none`}
+        className={`w-full glassmorphism-card rounded-lg py-5 overflow-x-auto flex flex-col items-center border ${resolvedTheme === 'light' ? 'border-gray-200' : 'border-gray-700'} shadow-none`}
       >
         {/* Layout toggle (sticky in continuous mode) */}
-        <div className={`w-full flex justify-center mb-2 ${layout === 'continuous' ? 'sticky top-0 z-30 bg-background/80 backdrop-blur' : ''}`} style={layout === 'continuous' ? { position: 'sticky', top: 0 } : {}}>
+        <div className={`w-full flex justify-center mb-2 ${layout === 'continuous' ? 'sticky top-0 z-30' : ''}`} style={layout === 'continuous' ? { position: 'sticky', top: 0 } : {}}>
           <button
             className={`px-3 py-1 rounded-lg border text-sm font-medium transition-colors duration-150 mr-2
               ${layout === 'single'
@@ -314,7 +314,7 @@ const PDFViewer = forwardRef(function PDFViewer({ fileUrl, title, bookId, userId
           </Document>
         </div>
         {/* Back to Top button for continuous mode */}
-        {layout === 'continuous' && showBackToTop && (
+        {/* {layout === 'continuous' && showBackToTop && (
           <button
             onClick={() => {
               const container = scrollContainerRef.current;
@@ -326,34 +326,36 @@ const PDFViewer = forwardRef(function PDFViewer({ fileUrl, title, bookId, userId
           >
             ↑ Back to Top
           </button>
+        )} */}
+        {layout === 'single' && (
+          <div className="flex items-center justify-center gap-4 py-4 flex-shrink-0">
+            <button
+              onClick={() => setPageNumber(Math.max(1, pageNumber - 1))}
+              disabled={pageNumber <= 1}
+              className={`px-3 py-1 rounded-lg border font-semibold transition-colors duration-150
+                ${resolvedTheme === 'light' ?
+                  'border-[#fe0002] text-[#fe0002] bg-white hover:bg-[#fe0002] hover:text-white' :
+                  'border-[#fe0002] text-[#fe0002] bg-transparent hover:bg-[#fe0002] hover:text-white'}
+                disabled:opacity-50`}
+            >
+              Previous
+            </button>
+            <span className="text-sm">
+              Page {pageNumber} of {numPages || '?'}
+            </span>
+            <button
+              onClick={() => setPageNumber(Math.min(numPages, pageNumber + 1))}
+              disabled={pageNumber >= numPages}
+              className={`px-3 py-1 rounded-lg border font-semibold transition-colors duration-150
+                ${resolvedTheme === 'light' ?
+                  'border-[#fe0002] text-[#fe0002] bg-white hover:bg-[#fe0002] hover:text-white' :
+                  'border-[#fe0002] text-[#fe0002] bg-transparent hover:bg-[#fe0002] hover:text-white'}
+                disabled:opacity-50`}
+            >
+              Next
+            </button>
+          </div>
         )}
-        <div className="flex items-center justify-center gap-4 py-4 flex-shrink-0">
-          <button
-            onClick={() => setPageNumber(Math.max(1, pageNumber - 1))}
-            disabled={pageNumber <= 1}
-            className={`px-3 py-1 rounded-lg border font-semibold transition-colors duration-150
-              ${resolvedTheme === 'light' ?
-                'border-[#fe0002] text-[#fe0002] bg-white hover:bg-[#fe0002] hover:text-white' :
-                'border-[#fe0002] text-[#fe0002] bg-transparent hover:bg-[#fe0002] hover:text-white'}
-              disabled:opacity-50`}
-          >
-            Previous
-          </button>
-          <span className="text-sm">
-            Page {pageNumber} of {numPages || '?'}
-          </span>
-          <button
-            onClick={() => setPageNumber(Math.min(numPages, pageNumber + 1))}
-            disabled={pageNumber >= numPages}
-            className={`px-3 py-1 rounded-lg border font-semibold transition-colors duration-150
-              ${resolvedTheme === 'light' ?
-                'border-[#fe0002] text-[#fe0002] bg-white hover:bg-[#fe0002] hover:text-white' :
-                'border-[#fe0002] text-[#fe0002] bg-transparent hover:bg-[#fe0002] hover:text-white'}
-              disabled:opacity-50`}
-          >
-            Next
-          </button>
-        </div>
         {loadError && (
           <div className="text-xs text-red-500 mt-2 whitespace-pre-wrap px-4 pb-4">{loadError}</div>
         )}
