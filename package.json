@@ -56,7 +56,7 @@
     "nextjs-toploader": "^3.8.16",
     "nodemailer": "^7.0.5",
     "pdf-parse": "^1.1.1",
-    "pdfjs-dist": "^5.3.31",
+    "pdfjs-dist": "3.0.279",
     "react": "^19",
     "react-day-picker": "8.10.1",
     "react-dom": "^19",

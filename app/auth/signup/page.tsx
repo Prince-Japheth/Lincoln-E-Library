@@ -27,6 +27,32 @@ export default function SignUpPage() {
   const [checking, setChecking] = useState(true)
   const [signupSuccess, setSignupSuccess] = useState(false)
 
+  // Insert user into user_profiles after sign-in (after email confirmation)
+  useEffect(() => {
+    const { data: listener } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (event === 'SIGNED_IN' && session?.user) {
+          const { id, email, user_metadata } = session.user
+          const fullName = user_metadata?.full_name || ''
+          // Try to insert user profile
+          const { error: insertError } = await supabase
+            .from('user_profiles')
+            .insert([{ user_id: id, full_name: fullName, email }])
+          if (insertError && insertError.code !== '23505') {
+            // 23505 = duplicate key, ignore if already exists
+            setError('Failed to save user profile: ' + insertError.message)
+          } else {
+            // Redirect to dashboard
+            router.replace('/student/dashboard')
+          }
+        }
+      }
+    )
+    return () => {
+      listener?.subscription.unsubscribe()
+    }
+  }, [router, supabase])
+
   useEffect(() => {
     const checkUser = async () => {
       const { data: { user } } = await supabase.auth.getUser()

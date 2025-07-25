@@ -99,7 +99,7 @@ export default function ReadBookPage({ params }: { params: Promise<{ id: string 
   // Close sidebar when clicking outside on mobile
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (sidebarOpen && window.innerWidth < 1024) {
+      if (sidebarOpen && window.innerWidth < 1024 && !isFullscreen) {
         const sidebar = document.getElementById('sidebar')
         if (sidebar && !sidebar.contains(event.target as Node)) {
           setSidebarOpen(false)
@@ -109,7 +109,7 @@ export default function ReadBookPage({ params }: { params: Promise<{ id: string 
 
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [sidebarOpen])
+  }, [sidebarOpen, isFullscreen])
 
   // Generate thumbnails for sidebar
   const onDocumentLoadSuccess = ({ numPages: nextNumPages }: { numPages: number }) => {
@@ -120,8 +120,10 @@ export default function ReadBookPage({ params }: { params: Promise<{ id: string 
   // Scroll to top when page changes
   useEffect(() => {
     console.log('📖 Read Page: Page changed to', pageNumber, 'of', numPages, 'for book:', book?.title)
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-  }, [pageNumber, numPages, book?.title])
+    if (!isFullscreen) {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+  }, [pageNumber, numPages, book?.title, isFullscreen])
 
   // Swipe gesture for fullscreen PDF navigation
   useEffect(() => {
@@ -152,6 +154,34 @@ export default function ReadBookPage({ params }: { params: Promise<{ id: string 
     };
   }, [isFullscreen, numPages]);
 
+  // Keyboard navigation for fullscreen
+  useEffect(() => {
+    if (!isFullscreen) return;
+    
+    const handleKeyPress = (e: KeyboardEvent) => {
+      switch (e.key) {
+        case 'ArrowLeft':
+        case 'ArrowUp':
+          e.preventDefault();
+          setPageNumber(p => Math.max(1, p - 1));
+          break;
+        case 'ArrowRight':
+        case 'ArrowDown':
+        case ' ':
+          e.preventDefault();
+          setPageNumber(p => Math.min(numPages, p + 1));
+          break;
+        case 'Escape':
+          e.preventDefault();
+          handleFullscreen();
+          break;
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyPress);
+    return () => document.removeEventListener('keydown', handleKeyPress);
+  }, [isFullscreen, numPages]);
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -172,11 +202,45 @@ export default function ReadBookPage({ params }: { params: Promise<{ id: string 
     return null
   }
 
+  // Fullscreen mode - show only PDF
+  if (isFullscreen) {
+    return (
+      <div
+        ref={viewerRef}
+        className="fixed inset-0 bg-black flex items-center justify-center z-50"
+        style={{ height: '100vh', width: '100vw' }}
+      >
+        <div className="w-full h-full flex items-center justify-center">
+          <PDFViewer
+            ref={pdfViewerRef}
+            fileUrl={book.file_url}
+            bookId={book.id}
+            userId={user?.id}
+            title={book.title}
+            pageNumber={pageNumber}
+            setPageNumber={setPageNumber}
+            onVisiblePageChange={setSidebarActivePage}
+            isFullscreen={true}
+          />
+        </div>
+        
+        {/* Hidden exit fullscreen button - appears on hover/tap */}
+        <button
+          onClick={handleFullscreen}
+          className="absolute top-4 right-4 bg-black/50 hover:bg-black/70 text-white p-2 rounded-lg opacity-20 hover:opacity-100 transition-all duration-300"
+          title="Exit Fullscreen (ESC)"
+        >
+          <Minimize2 size={20} />
+        </button>
+      </div>
+    )
+  }
+
+  // Normal mode - show everything
   return (
     <div
       ref={viewerRef}
-      className={`min-h-screen bg-background flex flex-row relative ${isFullscreen ? 'pt-0 overflow-auto' : 'pt-20'}`}
-      style={isFullscreen ? { height: '100vh', maxHeight: '100vh', WebkitOverflowScrolling: 'touch' } : {}}
+      className="min-h-screen bg-background flex flex-row relative pt-20"
     >
 
       {/* Sidebar overlay for mobile */}
@@ -262,8 +326,8 @@ export default function ReadBookPage({ params }: { params: Promise<{ id: string 
             onClick={handleFullscreen}
             className="bg-[#fe0002] text-white px-3 py-2 rounded-lg shadow hover:bg-[#ff4444] transition-all duration-200"
           >
-            {isFullscreen ? <Minimize2 className="inline mr-2" /> : <Maximize2 className="inline mr-2" />}
-            {isFullscreen ? "Exit Full Screen" : "Full Screen"}
+            <Maximize2 className="inline mr-2" />
+            Full Screen
           </button>
         </div>
 
@@ -272,8 +336,7 @@ export default function ReadBookPage({ params }: { params: Promise<{ id: string 
           className={`
             w-full fixed top-0 z-20 px-4 py-2 flex items-center
             lg:bg-transparent glassmorphism-card lg:right-0
-            lg:hidden
-            ${isFullscreen ? '' : 'pt-20'}
+            lg:hidden pt-20
           `}
         >
           {/* Sidebar toggle button (mobile only) */}
@@ -290,8 +353,8 @@ export default function ReadBookPage({ params }: { params: Promise<{ id: string 
             onClick={handleFullscreen}
             className="bg-[#fe0002] text-white px-3 py-2 rounded-lg shadow hover:bg-[#ff4444] transition-all duration-200"
           >
-            {isFullscreen ? <Minimize2 className="inline mr-2" /> : <Maximize2 className="inline mr-2" />}
-            {isFullscreen ? "Exit Full Screen" : "Full Screen"}
+            <Maximize2 className="inline mr-2" />
+            Full Screen
           </button>
         </div>
 
@@ -300,7 +363,7 @@ export default function ReadBookPage({ params }: { params: Promise<{ id: string 
             ref={pdfViewerRef}
             fileUrl={book.file_url}
             bookId={book.id}
-            userId={user.id}
+            userId={user?.id}
             title={book.title}
             pageNumber={pageNumber}
             setPageNumber={setPageNumber}
